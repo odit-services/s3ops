@@ -39,6 +39,7 @@ type S3Credentials struct {
 func (f *S3ClientFactoryMocked) NewClient(s3Server v1alpha1.S3Server) (s3client.S3Client, error) {
 	return &S3ClientMocked{
 		S3ClientMockEnv: f.S3ClientMockEnv,
+		S3ClientMockSpy: f.S3ClientMockSpy,
 		Endpoint:        s3Server.Spec.Endpoint,
 		Options: &minio.Options{
 			Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
