@@ -80,8 +80,8 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if !controllerutil.ContainsFinalizer(s3Bucket, "s3.odit.services/finalizer") {
-		controllerutil.AddFinalizer(s3Bucket, "s3.odit.services/finalizer")
+	if !controllerutil.ContainsFinalizer(s3Bucket, "s3.odit.services/bucket") {
+		controllerutil.AddFinalizer(s3Bucket, "s3.odit.services/bucket")
 		err := r.Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to add finalizer to S3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
