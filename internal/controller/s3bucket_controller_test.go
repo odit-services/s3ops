@@ -110,7 +110,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
 				It("should set the status condition to type ready", func() {
-					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
 				})
 				It("Should call the bucket exists function once", func() {
 					Expect(s3MockSpy.BucketExistsCalled).To(Equal(1))
