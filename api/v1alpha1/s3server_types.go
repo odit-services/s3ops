@@ -37,9 +37,6 @@ type S3ServerSpec struct {
 	// +kubebuilder:validation:Required
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
 
-	// +kubebuilder:validation:Optional
-	Port int32 `json:"port" yaml:"port"`
-
 	// +kubebuilder:validation:Required
 	Auth S3ServerAuthSpec `json:"auth" yaml:"auth"`
 }

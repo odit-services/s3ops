@@ -51,9 +51,6 @@ spec:
                 type: object
               endpoint:
                 type: string
-              port:
-                format: int32
-                type: integer
               tls:
                 default: true
                 type: boolean
