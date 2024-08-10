@@ -25,17 +25,39 @@ import (
 
 // S3ServerSpec defines the desired state of S3Server
 type S3ServerSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of S3Server. Edit s3server_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +kubebuilder:validation:Enum=minio
+	// +kubebuilder:validation:Required
+	// +kubebuilder:default=minio
+	Type string `json:"type" yaml:"type"`
+
+	// +kubebuilder:default=true
+	TLS bool `json:"tls" yaml:"tls"`
+
+	// +kubebuilder:validation:Required
+	Endpoint string `json:"endpoint" yaml:"endpoint"`
+
+	// +kubebuilder:validation:Optional
+	Port int32 `json:"port" yaml:"port"`
+
+	// +kubebuilder:validation:Required
+	Auth S3ServerAuthSpec `json:"auth" yaml:"auth"`
+}
+
+type S3ServerAuthSpec struct {
+	// +kubebuilder:validation:Required
+	AccessKey string `json:"accessKey" yaml:"accessKey"`
+
+	// +kubebuilder:validation:Required
+	SecretKey string `json:"secretKey" yaml:"secretKey"`
 }
 
 // S3ServerStatus defines the observed state of S3Server
 type S3ServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 }
 
 //+kubebuilder:object:root=true
@@ -43,11 +65,11 @@ type S3ServerStatus struct {
 
 // S3Server is the Schema for the s3servers API
 type S3Server struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty" yaml:"metadata"`
 
-	Spec   S3ServerSpec   `json:"spec,omitempty"`
-	Status S3ServerStatus `json:"status,omitempty"`
+	Spec   S3ServerSpec   `json:"spec,omitempty" yaml:"spec"`
+	Status S3ServerStatus `json:"status,omitempty" yaml:"status"`
 }
 
 //+kubebuilder:object:root=true
