@@ -324,4 +324,45 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			})
 		})
 	})
+	Describe("Testing the reconciliation of an existing deleted s3server", func() {
+		When("A valid s3server is deleted", func() {
+			var err error
+			var s3Server s3oditservicesv1alpha1.S3Server
+			BeforeAll(func() {
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3server-delete",
+					Namespace: "default",
+				}
+				s3Server = s3oditservicesv1alpha1.S3Server{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3ServerSpec{
+						Type:     "minio",
+						Endpoint: "play.min.io",
+						TLS:      true,
+						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+							AccessKey: "Q3AM3UQ867SPQQA43P2F",
+							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+				Expect(err).ToNot(HaveOccurred())
+
+				_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+
+				Expect(k8sClient.Delete(ctx, &s3Server)).To(Succeed())
+				err = k8sClient.Get(ctx, nameSpacedName, &s3Server)
+			})
+
+			It("should no longer exist in k8s", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
 })
