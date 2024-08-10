@@ -34,7 +34,7 @@ import (
 var _ = Describe("S3Bucket Controller", Ordered, func() {
 	ctx := context.Background()
 	s3MockEnv := mocks.DefaultMockEnvs()
-	var s3MockSpy *mocks.S3ClientMockSpy
+	s3MockSpy := mocks.S3ClientMockSpy{}
 	var s3Server *s3oditservicesv1alpha1.S3Server
 	var testReconciler *S3BucketReconciler
 
@@ -49,7 +49,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			logger: zap.NewNop().Sugar(),
 			S3ClientFactory: &mocks.S3ClientFactoryMocked{
 				S3ClientMockEnv: &s3MockEnv,
-				S3ClientMockSpy: s3MockSpy,
+				S3ClientMockSpy: &s3MockSpy,
 			},
 		}
 		By("creating a test s3 server")
@@ -76,7 +76,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				var s3Bucket s3oditservicesv1alpha1.S3Bucket
 
 				BeforeAll(func() {
-					s3MockSpy = &mocks.S3ClientMockSpy{}
+					s3MockSpy = mocks.S3ClientMockSpy{}
 					nameSpacedName := types.NamespacedName{
 						Name:      "test-s3-bucket-nonexistent",
 						Namespace: "default",

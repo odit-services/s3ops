@@ -34,7 +34,7 @@ import (
 var _ = Describe("S3Server Controller", Ordered, func() {
 	ctx := context.Background()
 	s3MockEnv := mocks.DefaultMockEnvs()
-	var s3MockSpy *mocks.S3ClientMockSpy
+	s3MockSpy := mocks.S3ClientMockSpy{}
 	var testReconciler *S3ServerReconciler
 
 	BeforeAll(func() {
@@ -47,7 +47,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			logger: zap.NewNop().Sugar(),
 			S3ClientFactory: &mocks.S3ClientFactoryMocked{
 				S3ClientMockEnv: &s3MockEnv,
-				S3ClientMockSpy: s3MockSpy,
+				S3ClientMockSpy: &s3MockSpy,
 			},
 		}
 	})
@@ -59,7 +59,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				var s3Server s3oditservicesv1alpha1.S3Server
 				var result reconcile.Result
 				BeforeAll(func() {
-					s3MockSpy = &mocks.S3ClientMockSpy{}
+					s3MockSpy = mocks.S3ClientMockSpy{}
 					nameSpacedName := types.NamespacedName{
 						Name:      "test-s3server",
 						Namespace: "default",
@@ -99,7 +99,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				var err error
 				var s3Server s3oditservicesv1alpha1.S3Server
 				BeforeAll(func() {
-					s3MockSpy = &mocks.S3ClientMockSpy{}
+					s3MockSpy = mocks.S3ClientMockSpy{}
 					nameSpacedName := types.NamespacedName{
 						Name:      "test-s3server-invalid-domain",
 						Namespace: "default",
@@ -140,7 +140,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				var err error
 				var s3Server s3oditservicesv1alpha1.S3Server
 				BeforeAll(func() {
-					s3MockSpy = &mocks.S3ClientMockSpy{}
+					s3MockSpy = mocks.S3ClientMockSpy{}
 					nameSpacedName := types.NamespacedName{
 						Name:      "test-s3server-invalid-credentials",
 						Namespace: "default",
@@ -185,7 +185,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			var s3Server s3oditservicesv1alpha1.S3Server
 			var result reconcile.Result
 			BeforeAll(func() {
-				s3MockSpy = &mocks.S3ClientMockSpy{}
+				s3MockSpy = mocks.S3ClientMockSpy{}
 				nameSpacedName := types.NamespacedName{
 					Name:      "test-s3server-update-endpoint",
 					Namespace: "default",
@@ -235,7 +235,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			var s3Server s3oditservicesv1alpha1.S3Server
 			var result reconcile.Result
 			BeforeAll(func() {
-				s3MockSpy = &mocks.S3ClientMockSpy{}
+				s3MockSpy = mocks.S3ClientMockSpy{}
 				nameSpacedName := types.NamespacedName{
 					Name:      "test-invalid-s3server-update-endpoint",
 					Namespace: "default",
@@ -283,7 +283,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			var err error
 			var s3Server s3oditservicesv1alpha1.S3Server
 			BeforeAll(func() {
-				s3MockSpy = &mocks.S3ClientMockSpy{}
+				s3MockSpy = mocks.S3ClientMockSpy{}
 				nameSpacedName := types.NamespacedName{
 					Name:      "test-s3server-update-invalid-endpoint",
 					Namespace: "default",
@@ -330,7 +330,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			var err error
 			var s3Server s3oditservicesv1alpha1.S3Server
 			BeforeAll(func() {
-				s3MockSpy = &mocks.S3ClientMockSpy{}
+				s3MockSpy = mocks.S3ClientMockSpy{}
 				nameSpacedName := types.NamespacedName{
 					Name:      "test-s3server-delete",
 					Namespace: "default",
