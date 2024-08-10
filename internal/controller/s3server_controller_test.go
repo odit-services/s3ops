@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"log"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -64,7 +65,6 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 							Type:     "minio",
 							Endpoint: "play.min.io",
 							TLS:      true,
-							Port:     9001,
 							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
 								AccessKey: "Q3AM3UQ867SPQQA43P2F",
 								SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
@@ -85,6 +85,89 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				})
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status condition to type ready", func() {
+					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				})
+			})
+			When("A new invalid s3server is with an non-existant domain", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				BeforeAll(func() {
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server-invalid-domain",
+						Namespace: "default",
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: "invalid-domain.s3.odit.services",
+							TLS:      true,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								AccessKey: "Q3AM3UQ867SPQQA43P2F",
+								SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+							},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
+
+					_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					log.Printf("Error: %v", err)
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
+
+				It("should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status condition to type failed", func() {
+					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				})
+			})
+			When("A new invalid s3server is with an wrong credentials", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				BeforeAll(func() {
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server-invalid-credentials",
+						Namespace: "default",
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: "play.min.io",
+							TLS:      true,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								AccessKey: "invalid",
+								SecretKey: "invalid",
+							},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
+
+					_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					log.Printf("Error: %v", err)
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
+
+				It("should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status condition to type failed", func() {
+					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
 				})
 			})
 		})
