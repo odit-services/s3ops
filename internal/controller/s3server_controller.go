@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
+	s3client "github.com/odit-services/s3ops/internal/controller/shared"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,7 +41,7 @@ type S3ServerReconciler struct {
 	client.Client
 	Scheme          *runtime.Scheme
 	logger          *zap.SugaredLogger
-	S3ClientFactory S3ClientFactory
+	S3ClientFactory s3client.S3ClientFactory
 }
 
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3servers,verbs=get;list;watch;create;update;patch;delete
@@ -158,7 +159,7 @@ func (r *S3ServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	defer zapLogger.Sync()
 	r.logger = zapLogger.Sugar()
 
-	r.S3ClientFactory = &S3ClientFactoryDefault{}
+	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3Server{}).

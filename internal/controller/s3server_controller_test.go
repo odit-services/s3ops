@@ -21,6 +21,7 @@ import (
 	"log"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
+	s3client "github.com/odit-services/s3ops/internal/controller/shared"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
@@ -42,7 +43,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			Client:          k8sClient,
 			Scheme:          testScheme,
 			logger:          zap.NewNop().Sugar(),
-			S3ClientFactory: &S3ClientFactoryDefault{},
+			S3ClientFactory: &s3client.S3ClientFactoryDefault{},
 		}
 	})
 
