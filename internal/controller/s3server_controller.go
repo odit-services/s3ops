@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"go.uber.org/zap"
@@ -51,7 +50,6 @@ type S3ServerReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 	r.logger.Infow("Reconciling S3Server", "name", req.Name, "namespace", req.Namespace)
 
 	s3Server := &s3oditservicesv1alpha1.S3Server{}
@@ -103,6 +101,9 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, err
 	}
+
+	minioClient.HealthCheck(1 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	minioOnline := minioClient.IsOnline()
 	if !minioOnline {
