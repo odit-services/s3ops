@@ -39,6 +39,11 @@ spec:
           spec:
             description: S3BucketSpec defines the desired state of S3Bucket
             properties:
+              objectLocking:
+                default: false
+                type: boolean
+              region:
+                type: string
               serverRef:
                 properties:
                   name:
@@ -50,6 +55,7 @@ spec:
                 - namespace
                 type: object
             required:
+            - region
             - serverRef
             type: object
           status:

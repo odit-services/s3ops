@@ -27,6 +27,14 @@ import (
 type S3BucketSpec struct {
 	// +kubebuilder:validation:Required
 	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
+
+	// +kubebuilder:validation:Required
+	Region string `json:"region" yaml:"region"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=false
+	ObjectLocking bool `json:"objectLocking" yaml:"objectLocking"`
 }
 
 type ServerReference struct {
