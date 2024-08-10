@@ -63,6 +63,9 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			Status:  metav1.ConditionFalse,
 			Reason:  s3oditservicesv1alpha1.ReasonNotFound,
 			Message: "S3Server resource not found",
+			LastTransitionTime: metav1.Time{
+				Time: time.Now(),
+			},
 		})
 		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, err
@@ -71,7 +74,11 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
 		Type:    s3oditservicesv1alpha1.ConditionReconciling,
 		Status:  metav1.ConditionUnknown,
+		Reason:  s3oditservicesv1alpha1.ConditionReconciling,
 		Message: fmt.Sprintf("Reconciling S3Server %s", s3Server.Name),
+		LastTransitionTime: metav1.Time{
+			Time: time.Now(),
+		},
 	})
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
@@ -87,7 +94,11 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
 			Type:    s3oditservicesv1alpha1.ConditionFailed,
 			Status:  metav1.ConditionFalse,
+			Reason:  err.Error(),
 			Message: fmt.Sprintf("Failed to create Minio client: %v", err),
+			LastTransitionTime: metav1.Time{
+				Time: time.Now(),
+			},
 		})
 		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, err
@@ -101,6 +112,9 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			Status:  metav1.ConditionFalse,
 			Reason:  s3oditservicesv1alpha1.ReasonOffline,
 			Message: "Minio server is offline",
+			LastTransitionTime: metav1.Time{
+				Time: time.Now(),
+			},
 		})
 		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, fmt.Errorf("minio server is offline")
@@ -110,7 +124,11 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
 		Type:    s3oditservicesv1alpha1.ConditionReady,
 		Status:  metav1.ConditionTrue,
+		Reason:  metav1.StatusSuccess,
 		Message: "S3Server is ready",
+		LastTransitionTime: metav1.Time{
+			Time: time.Now(),
+		},
 	})
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
