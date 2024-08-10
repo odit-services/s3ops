@@ -31,8 +31,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -83,10 +81,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	minioClient, err := minio.New(s3Server.Spec.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
-		Secure: s3Server.Spec.TLS,
-	})
+	minioClient, err := GenerateMinioClientFromS3Server(*s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to create Minio client for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
