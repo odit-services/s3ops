@@ -33,15 +33,7 @@ import (
 
 var _ = Describe("S3Server Controller", Ordered, func() {
 	ctx := context.Background()
-	s3MockEnv := &mocks.S3ClientMockEnv{
-		ValidEndpoints: []string{"valid.s3.odit.services", "valid2.s3.odit.services"},
-		ValidCredentials: []s3oditservicesv1alpha1.S3ServerAuthSpec{
-			{
-				AccessKey: "valid",
-				SecretKey: "valid",
-			},
-		},
-	}
+	s3MockEnv := mocks.DefaultMockEnvs()
 	var testReconciler *S3ServerReconciler
 
 	BeforeAll(func() {
@@ -53,7 +45,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			Scheme: testScheme,
 			logger: zap.NewNop().Sugar(),
 			S3ClientFactory: &mocks.S3ClientFactoryMocked{
-				S3ClientMockEnv: s3MockEnv,
+				S3ClientMockEnv: &s3MockEnv,
 			},
 		}
 	})
