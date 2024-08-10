@@ -25,7 +25,16 @@ import (
 
 // S3BucketSpec defines the desired state of S3Bucket
 type S3BucketSpec struct {
-	Quota
+	// +kubebuilder:validation:Required
+	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
+}
+
+type ServerReference struct {
+	// +kubebuilder:validation:Required
+	Name string `json:"name" yaml:"name"`
+
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace" yaml:"namespace"`
 }
 
 // S3BucketStatus defines the observed state of S3Bucket
