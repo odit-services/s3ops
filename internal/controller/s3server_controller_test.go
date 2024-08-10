@@ -172,4 +172,156 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			})
 		})
 	})
+	Describe("Testing the reconciliation of an existing updated s3server", func() {
+		When("A valid s3server is updated with a new valid endpoint", func() {
+			var err error
+			var s3Server s3oditservicesv1alpha1.S3Server
+			var result reconcile.Result
+			BeforeAll(func() {
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3server-update-endpoint",
+					Namespace: "default",
+				}
+				s3Server = s3oditservicesv1alpha1.S3Server{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3ServerSpec{
+						Type:     "minio",
+						Endpoint: "play.min.io",
+						TLS:      true,
+						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+							AccessKey: "Q3AM3UQ867SPQQA43P2F",
+							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+				Expect(err).ToNot(HaveOccurred())
+
+				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+
+				s3Server.Spec.Endpoint = "play.min.io:9000"
+				Expect(k8sClient.Update(ctx, &s3Server)).To(Succeed())
+
+				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+			})
+
+			It("should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("should return a result with requeue set higher than 0", func() {
+				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+			})
+			It("should set the status condition to type ready", func() {
+				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+			})
+		})
+
+		When("An invalid s3server is updated with a valid endpoint", func() {
+			var err error
+			var s3Server s3oditservicesv1alpha1.S3Server
+			var result reconcile.Result
+			BeforeAll(func() {
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-invalid-s3server-update-endpoint",
+					Namespace: "default",
+				}
+				s3Server = s3oditservicesv1alpha1.S3Server{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3ServerSpec{
+						Type:     "minio",
+						Endpoint: "invalid-domain.s3.odit.services",
+						TLS:      true,
+						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+							AccessKey: "Q3AM3UQ867SPQQA43P2F",
+							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+				Expect(err).ToNot(HaveOccurred())
+
+				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+
+				s3Server.Spec.Endpoint = "play.min.io"
+				Expect(k8sClient.Update(ctx, &s3Server)).To(Succeed())
+
+				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+			})
+
+			It("should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("should return a result with requeue set higher than 0", func() {
+				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+			})
+			It("should set the status condition to type ready", func() {
+				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+			})
+		})
+		When("A valid s3server is updated with a new invalid endpoint", func() {
+			var err error
+			var s3Server s3oditservicesv1alpha1.S3Server
+			BeforeAll(func() {
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3server-update-invalid-endpoint",
+					Namespace: "default",
+				}
+				s3Server = s3oditservicesv1alpha1.S3Server{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3ServerSpec{
+						Type:     "minio",
+						Endpoint: "play.min.io",
+						TLS:      true,
+						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+							AccessKey: "Q3AM3UQ867SPQQA43P2F",
+							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+				Expect(err).ToNot(HaveOccurred())
+
+				_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+
+				s3Server.Spec.Endpoint = "invalid-domain.s3.odit.services"
+				Expect(k8sClient.Update(ctx, &s3Server)).To(Succeed())
+
+				_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+			})
+
+			It("should return an error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+			It("should set the status condition to type failed", func() {
+				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+			})
+		})
+	})
 })
