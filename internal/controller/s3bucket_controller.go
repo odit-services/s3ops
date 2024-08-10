@@ -18,19 +18,26 @@ package controller
 
 import (
 	"context"
+	"os"
+	"strings"
+	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
+	s3client "github.com/odit-services/s3ops/internal/controller/shared"
 )
 
 // S3BucketReconciler reconciles a S3Bucket object
 type S3BucketReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme          *runtime.Scheme
+	logger          *zap.SugaredLogger
+	S3ClientFactory s3client.S3ClientFactory
 }
 
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets,verbs=get;list;watch;create;update;patch;delete
@@ -38,15 +45,35 @@ type S3BucketReconciler struct {
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets/finalizers,verbs=update
 
 func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{
+		RequeueAfter: 5 * time.Minute,
+	}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *S3BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "INFO"
+	}
+
+	var zapLogLevel zapcore.Level
+	err := zapLogLevel.UnmarshalText([]byte(strings.ToLower(logLevel)))
+	if err != nil {
+		zapLogLevel = zapcore.InfoLevel
+	}
+
+	zapConfig := zap.NewProductionConfig()
+	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
+	zapLogger, _ := zapConfig.Build()
+	defer zapLogger.Sync()
+	r.logger = zapLogger.Sugar()
+
+	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3Bucket{}).
 		Complete(r)
