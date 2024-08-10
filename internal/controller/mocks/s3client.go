@@ -15,11 +15,20 @@ import (
 
 type S3ClientFactoryMocked struct {
 	S3ClientMockEnv *S3ClientMockEnv
+	S3ClientMockSpy *S3ClientMockSpy
 }
 
 type S3ClientMockEnv struct {
 	ValidEndpoints   []string
 	ValidCredentials []v1alpha1.S3ServerAuthSpec
+}
+
+type S3ClientMockSpy struct {
+	HealthCheckCalled  int
+	IsOnlineCalled     int
+	BucketExistsCalled int
+	MakeBucketCalled   int
+	RemoveBucketCalled int
 }
 
 type S3Credentials struct {
@@ -40,15 +49,18 @@ func (f *S3ClientFactoryMocked) NewClient(s3Server v1alpha1.S3Server) (s3client.
 
 type S3ClientMocked struct {
 	S3ClientMockEnv *S3ClientMockEnv
+	S3ClientMockSpy *S3ClientMockSpy
 	Endpoint        string
 	Options         *minio.Options
 }
 
 func (c *S3ClientMocked) HealthCheck(time.Duration) (context.CancelFunc, error) {
+	c.S3ClientMockSpy.HealthCheckCalled++
 	return nil, nil
 }
 
 func (c *S3ClientMocked) IsOnline() bool {
+	c.S3ClientMockSpy.IsOnlineCalled++
 	if !slices.Contains(c.S3ClientMockEnv.ValidEndpoints, c.Endpoint) {
 		log.Printf("Invalid endpoint %s", c.Endpoint)
 		return false
@@ -65,13 +77,16 @@ func (c *S3ClientMocked) IsOnline() bool {
 }
 
 func (c *S3ClientMocked) BucketExists(context.Context, string) (bool, error) {
+	c.S3ClientMockSpy.BucketExistsCalled++
 	return false, fmt.Errorf("not implemented")
 }
 
 func (c *S3ClientMocked) MakeBucket(context.Context, string, minio.MakeBucketOptions) error {
+	c.S3ClientMockSpy.MakeBucketCalled++
 	return fmt.Errorf("not implemented")
 }
 
 func (c *S3ClientMocked) RemoveBucket(context.Context, string) error {
+	c.S3ClientMockSpy.RemoveBucketCalled++
 	return fmt.Errorf("not implemented")
 }
