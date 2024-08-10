@@ -19,66 +19,74 @@ package controller
 import (
 	"context"
 
+	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
+	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ = Describe("S3Server Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+var _ = Describe("S3Server Controller", Ordered, func() {
+	ctx := context.Background()
+	var testReconciler *S3ServerReconciler
 
-		ctx := context.Background()
-
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+	BeforeAll(func() {
+		By("creating the test reconciler")
+		testScheme := scheme.Scheme
+		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3Server{})
+		testReconciler = &S3ServerReconciler{
+			Client: k8sClient,
+			Scheme: testScheme,
+			logger: zap.NewNop().Sugar(),
 		}
-		s3server := &s3oditservicesv1alpha1.S3Server{}
+	})
 
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind S3Server")
-			err := k8sClient.Get(ctx, typeNamespacedName, s3server)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &s3oditservicesv1alpha1.S3Server{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
+	Describe("Testing the reconcoile function", func() {
+		Describe("Testing the reconciliation of a new s3server", func() {
+			When("A new valid s3server is created", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				var result reconcile.Result
+				BeforeAll(func() {
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server",
 						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: "play.min.io",
+							TLS:      true,
+							Port:     9001,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								AccessKey: "Q3AM3UQ867SPQQA43P2F",
+								SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+							},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
 
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &s3oditservicesv1alpha1.S3Server{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
+					result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
 
-			By("Cleanup the specific resource instance S3Server")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &S3ServerReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
-
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
+				It("should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
 			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
 		})
 	})
 })
