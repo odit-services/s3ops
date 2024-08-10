@@ -13,8 +13,10 @@ const (
 
 // Implement the reason enums
 const (
-	ReasonNotFound = "NotFound"
-	ReasonOffline  = "Offline"
+	ReasonNotFound               = "NotFound"
+	ReasonOffline                = "Offline"
+	ReasonFinalizerFailedToApply = "FinalizerFailedToApply"
+	ReasonRequestFailed          = "RequestFailed"
 )
 
 type CRStatus struct {
