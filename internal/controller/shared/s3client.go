@@ -24,4 +24,6 @@ func (f *S3ClientFactoryDefault) NewClient(s3Server v1alpha1.S3Server) (S3Client
 type S3Client interface {
 	HealthCheck(time.Duration) (context.CancelFunc, error)
 	IsOnline() bool
+	BucketExists(context.Context, string) (bool, error)
+	MakeBucket(context.Context, string, minio.MakeBucketOptions) error
 }

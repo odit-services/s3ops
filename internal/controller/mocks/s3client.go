@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"slices"
 	"time"
@@ -61,4 +62,16 @@ func (c *S3ClientMocked) IsOnline() bool {
 		return false
 	}
 	return true
+}
+
+func (c *S3ClientMocked) BucketExists(context.Context, string) (bool, error) {
+	return false, fmt.Errorf("not implemented")
+}
+
+func (c *S3ClientMocked) MakeBucket(context.Context, string, minio.MakeBucketOptions) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (c *S3ClientMocked) RemoveBucket(context.Context, string) error {
+	return fmt.Errorf("not implemented")
 }
