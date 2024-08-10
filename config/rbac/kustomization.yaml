@@ -20,5 +20,11 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the Project itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- s3bucket_editor_role.yaml
+- s3bucket_viewer_role.yaml
+# For each CRD, "Editor" and "Viewer" roles are scaffolded by
+# default, aiding admins in cluster management. Those roles are
+# not used by the Project itself. You can comment the following lines
+# if you do not want those helpers be installed with your Project.
 - s3server_editor_role.yaml
 - s3server_viewer_role.yaml
