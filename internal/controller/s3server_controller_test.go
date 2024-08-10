@@ -21,7 +21,7 @@ import (
 	"log"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/shared"
+	"github.com/odit-services/s3ops/internal/controller/mocks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
@@ -33,6 +33,15 @@ import (
 
 var _ = Describe("S3Server Controller", Ordered, func() {
 	ctx := context.Background()
+	s3MockEnv := &mocks.S3ClientMockEnv{
+		ValidEndpoints: []string{"valid.s3.odit.services", "valid2.s3.odit.services"},
+		ValidCredentials: []s3oditservicesv1alpha1.S3ServerAuthSpec{
+			{
+				AccessKey: "valid",
+				SecretKey: "valid",
+			},
+		},
+	}
 	var testReconciler *S3ServerReconciler
 
 	BeforeAll(func() {
@@ -40,10 +49,12 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 		testScheme := scheme.Scheme
 		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3Server{})
 		testReconciler = &S3ServerReconciler{
-			Client:          k8sClient,
-			Scheme:          testScheme,
-			logger:          zap.NewNop().Sugar(),
-			S3ClientFactory: &s3client.S3ClientFactoryDefault{},
+			Client: k8sClient,
+			Scheme: testScheme,
+			logger: zap.NewNop().Sugar(),
+			S3ClientFactory: &mocks.S3ClientFactoryMocked{
+				S3ClientMockEnv: s3MockEnv,
+			},
 		}
 	})
 
@@ -65,12 +76,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 						},
 						Spec: s3oditservicesv1alpha1.S3ServerSpec{
 							Type:     "minio",
-							Endpoint: "play.min.io",
+							Endpoint: s3MockEnv.ValidEndpoints[0],
 							TLS:      true,
-							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-								AccessKey: "Q3AM3UQ867SPQQA43P2F",
-								SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-							},
+							Auth:     s3MockEnv.ValidCredentials[0],
 						},
 					}
 					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
@@ -110,8 +118,8 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 							Endpoint: "invalid-domain.s3.odit.services",
 							TLS:      true,
 							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-								AccessKey: "Q3AM3UQ867SPQQA43P2F",
-								SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+								AccessKey: "invalid",
+								SecretKey: "invalid",
 							},
 						},
 					}
@@ -147,7 +155,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 						},
 						Spec: s3oditservicesv1alpha1.S3ServerSpec{
 							Type:     "minio",
-							Endpoint: "play.min.io",
+							Endpoint: s3MockEnv.ValidEndpoints[0],
 							TLS:      true,
 							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
 								AccessKey: "invalid",
@@ -191,23 +199,20 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 					},
 					Spec: s3oditservicesv1alpha1.S3ServerSpec{
 						Type:     "minio",
-						Endpoint: "play.min.io",
+						Endpoint: s3MockEnv.ValidEndpoints[0],
 						TLS:      true,
-						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-							AccessKey: "Q3AM3UQ867SPQQA43P2F",
-							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-						},
+						Auth:     s3MockEnv.ValidCredentials[0],
 					},
 				}
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
 				Expect(err).ToNot(HaveOccurred())
 
-				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+				testReconciler.Reconcile(ctx, reconcile.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
 
-				s3Server.Spec.Endpoint = "play.min.io:9000"
+				s3Server.Spec.Endpoint = s3MockEnv.ValidEndpoints[1]
 				Expect(k8sClient.Update(ctx, &s3Server)).To(Succeed())
 
 				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
@@ -245,21 +250,18 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 						Type:     "minio",
 						Endpoint: "invalid-domain.s3.odit.services",
 						TLS:      true,
-						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-							AccessKey: "Q3AM3UQ867SPQQA43P2F",
-							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-						},
+						Auth:     s3MockEnv.ValidCredentials[0],
 					},
 				}
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
 				Expect(err).ToNot(HaveOccurred())
 
-				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+				testReconciler.Reconcile(ctx, reconcile.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
 
-				s3Server.Spec.Endpoint = "play.min.io"
+				s3Server.Spec.Endpoint = s3MockEnv.ValidEndpoints[0]
 				Expect(k8sClient.Update(ctx, &s3Server)).To(Succeed())
 
 				result, err = testReconciler.Reconcile(ctx, reconcile.Request{
@@ -293,12 +295,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 					},
 					Spec: s3oditservicesv1alpha1.S3ServerSpec{
 						Type:     "minio",
-						Endpoint: "play.min.io",
+						Endpoint: s3MockEnv.ValidEndpoints[0],
 						TLS:      true,
-						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-							AccessKey: "Q3AM3UQ867SPQQA43P2F",
-							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-						},
+						Auth:     s3MockEnv.ValidCredentials[0],
 					},
 				}
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
@@ -342,12 +341,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 					},
 					Spec: s3oditservicesv1alpha1.S3ServerSpec{
 						Type:     "minio",
-						Endpoint: "play.min.io",
+						Endpoint: s3MockEnv.ValidEndpoints[0],
 						TLS:      true,
-						Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
-							AccessKey: "Q3AM3UQ867SPQQA43P2F",
-							SecretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-						},
+						Auth:     s3MockEnv.ValidCredentials[0],
 					},
 				}
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
