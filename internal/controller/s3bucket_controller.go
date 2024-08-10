@@ -64,7 +64,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
@@ -77,7 +77,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Bucket resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	if !controllerutil.ContainsFinalizer(s3Bucket, "s3.odit.services/finalizer") {
@@ -93,7 +93,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{}, nil
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -112,7 +112,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)
@@ -142,7 +142,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	if !bucketExists {
@@ -160,7 +160,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{}, nil
+			return ctrl.Result{}, err
 		}
 	}
 
