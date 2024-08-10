@@ -21,6 +21,7 @@ type S3ClientFactoryMocked struct {
 type S3ClientMockEnv struct {
 	ValidEndpoints   []string
 	ValidCredentials []v1alpha1.S3ServerAuthSpec
+	ExistingBuckets  []string
 }
 
 type S3ClientMockSpy struct {
@@ -77,14 +78,14 @@ func (c *S3ClientMocked) IsOnline() bool {
 	return true
 }
 
-func (c *S3ClientMocked) BucketExists(context.Context, string) (bool, error) {
+func (c *S3ClientMocked) BucketExists(ctx context.Context, name string) (bool, error) {
 	c.S3ClientMockSpy.BucketExistsCalled++
-	return false, fmt.Errorf("not implemented")
+	return slices.Contains(c.S3ClientMockEnv.ExistingBuckets, name), nil
 }
 
 func (c *S3ClientMocked) MakeBucket(context.Context, string, minio.MakeBucketOptions) error {
 	c.S3ClientMockSpy.MakeBucketCalled++
-	return fmt.Errorf("not implemented")
+	return nil
 }
 
 func (c *S3ClientMocked) RemoveBucket(context.Context, string) error {
