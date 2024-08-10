@@ -142,13 +142,13 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 // SetupWithManager sets up the controller with the Manager.
 func (r *S3ServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
-	lovLevel := os.Getenv("LOG_LEVEL")
-	if lovLevel == "" {
-		lovLevel = "INFO"
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "INFO"
 	}
 
 	var zapLogLevel zapcore.Level
-	err := zapLogLevel.UnmarshalText([]byte(strings.ToLower(lovLevel)))
+	err := zapLogLevel.UnmarshalText([]byte(strings.ToLower(logLevel)))
 	if err != nil {
 		zapLogLevel = zapcore.InfoLevel
 	}
