@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	"github.com/odit-services/s3ops/internal/controller/mocks"
@@ -117,6 +118,9 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				It("Should call the make bucket function once", func() {
 					Expect(s3MockSpy.MakeBucketCalled).To(Equal(1))
+				})
+				It("Should add the finalizer to the s3bucket", func() {
+					Expect(controllerutil.ContainsFinalizer(&s3Bucket, "s3.odit.services/bucket")).To(BeTrue())
 				})
 			})
 		})
