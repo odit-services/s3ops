@@ -56,13 +56,7 @@ type S3ClientMocked struct {
 	Options         *minio.Options
 }
 
-func (c *S3ClientMocked) HealthCheck(time.Duration) (context.CancelFunc, error) {
-	c.S3ClientMockSpy.HealthCheckCalled++
-	return nil, nil
-}
-
-func (c *S3ClientMocked) IsOnline() bool {
-	c.S3ClientMockSpy.IsOnlineCalled++
+func (c *S3ClientMocked) CheckServerValid() bool {
 	if !slices.Contains(c.S3ClientMockEnv.ValidEndpoints, c.Endpoint) {
 		log.Printf("Invalid endpoint %s", c.Endpoint)
 		return false
@@ -78,13 +72,29 @@ func (c *S3ClientMocked) IsOnline() bool {
 	return true
 }
 
+func (c *S3ClientMocked) HealthCheck(time.Duration) (context.CancelFunc, error) {
+	c.S3ClientMockSpy.HealthCheckCalled++
+	return nil, nil
+}
+
+func (c *S3ClientMocked) IsOnline() bool {
+	c.S3ClientMockSpy.IsOnlineCalled++
+	return c.CheckServerValid()
+}
+
 func (c *S3ClientMocked) BucketExists(ctx context.Context, name string) (bool, error) {
 	c.S3ClientMockSpy.BucketExistsCalled++
+	if !c.CheckServerValid() {
+		return false, fmt.Errorf("invalid server")
+	}
 	return slices.Contains(c.S3ClientMockEnv.ExistingBuckets, name), nil
 }
 
 func (c *S3ClientMocked) MakeBucket(context.Context, string, minio.MakeBucketOptions) error {
 	c.S3ClientMockSpy.MakeBucketCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
 	return nil
 }
 

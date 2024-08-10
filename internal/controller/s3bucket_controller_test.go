@@ -37,6 +37,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 	s3MockEnv := mocks.DefaultMockEnvs()
 	s3MockSpy := mocks.S3ClientMockSpy{}
 	var s3Server *s3oditservicesv1alpha1.S3Server
+	var s3ServerBroken *s3oditservicesv1alpha1.S3Server
 	var testReconciler *S3BucketReconciler
 
 	BeforeAll(func() {
@@ -67,6 +68,24 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3Server)).To(Succeed())
+
+		By("creating a invalid test s3 server")
+		s3ServerBroken = &s3oditservicesv1alpha1.S3Server{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-s3-server-invalid",
+				Namespace: "default",
+			},
+			Spec: s3oditservicesv1alpha1.S3ServerSpec{
+				Type:     "minio",
+				Endpoint: s3MockEnv.ValidEndpoints[0],
+				TLS:      true,
+				Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+					AccessKey: "invalid",
+					SecretKey: "invalid",
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
 	})
 
 	Describe("Testing the reconcoile function", func() {
@@ -121,6 +140,84 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				It("Should add the finalizer to the s3bucket", func() {
 					Expect(controllerutil.ContainsFinalizer(&s3Bucket, "s3.odit.services/bucket")).To(BeTrue())
+				})
+			})
+			When("A new valid s3bucket is created with a nonexistant s3server", func() {
+				var err error
+				var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-bucket-nonexistent-nonexistant-s3server",
+						Namespace: "default",
+					}
+					s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3BucketSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      "nonexistent-s3-server",
+								Namespace: "default",
+							},
+							Region:        "eu-west-1",
+							ObjectLocking: false,
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+				})
+
+				It("Should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status condition to type failed", func() {
+					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				})
+			})
+			When("A new valid s3bucket is created with a invalid s3server", func() {
+				var err error
+				var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-bucket-nonexistent-invalid-s3server",
+						Namespace: "default",
+					}
+					s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3BucketSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3ServerBroken.Name,
+								Namespace: s3ServerBroken.Namespace,
+							},
+							Region:        "eu-west-1",
+							ObjectLocking: false,
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+				})
+
+				It("Should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status condition to type failed", func() {
+					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
 				})
 			})
 		})
