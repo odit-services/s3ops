@@ -39,9 +39,10 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 		testScheme := scheme.Scheme
 		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3Server{})
 		testReconciler = &S3ServerReconciler{
-			Client: k8sClient,
-			Scheme: testScheme,
-			logger: zap.NewNop().Sugar(),
+			Client:          k8sClient,
+			Scheme:          testScheme,
+			logger:          zap.NewNop().Sugar(),
+			S3ClientFactory: &S3ClientFactoryDefault{},
 		}
 	})
 

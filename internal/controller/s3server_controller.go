@@ -38,8 +38,9 @@ import (
 // S3ServerReconciler reconciles a S3Server object
 type S3ServerReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
-	logger *zap.SugaredLogger
+	Scheme          *runtime.Scheme
+	logger          *zap.SugaredLogger
+	S3ClientFactory S3ClientFactory
 }
 
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3servers,verbs=get;list;watch;create;update;patch;delete
@@ -81,7 +82,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	minioClient, err := GenerateMinioClientFromS3Server(*s3Server)
+	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to create Minio client for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
@@ -156,6 +157,8 @@ func (r *S3ServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	zapLogger, _ := zapConfig.Build()
 	defer zapLogger.Sync()
 	r.logger = zapLogger.Sugar()
+
+	r.S3ClientFactory = &S3ClientFactoryDefault{}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3Server{}).
