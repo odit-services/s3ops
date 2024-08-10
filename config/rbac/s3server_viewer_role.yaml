@@ -1,0 +1,23 @@
+# permissions for end users to view s3servers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: s3ops
+    app.kubernetes.io/managed-by: kustomize
+  name: s3server-viewer-role
+rules:
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3servers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3servers/status
+  verbs:
+  - get
