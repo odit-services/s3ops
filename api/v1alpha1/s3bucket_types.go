@@ -37,12 +37,6 @@ type ServerReference struct {
 	Namespace string `json:"namespace" yaml:"namespace"`
 }
 
-// S3BucketStatus defines the observed state of S3Bucket
-type S3BucketStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
@@ -51,8 +45,8 @@ type S3Bucket struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   S3BucketSpec   `json:"spec,omitempty"`
-	Status S3BucketStatus `json:"status,omitempty"`
+	Spec   S3BucketSpec `json:"spec,omitempty"`
+	Status CRStatus     `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

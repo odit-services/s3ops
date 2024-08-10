@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: s3servers.s3.odit.services
+  name: s3buckets.s3.odit.services
 spec:
   group: s3.odit.services
   names:
-    kind: S3Server
-    listKind: S3ServerList
-    plural: s3servers
-    singular: s3server
+    kind: S3Bucket
+    listKind: S3BucketList
+    plural: s3buckets
+    singular: s3bucket
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: S3Server is the Schema for the s3servers API
+        description: S3Bucket is the Schema for the s3buckets API
         properties:
           apiVersion:
             description: |-
@@ -37,33 +37,20 @@ spec:
           metadata:
             type: object
           spec:
-            description: S3ServerSpec defines the desired state of S3Server
+            description: S3BucketSpec defines the desired state of S3Bucket
             properties:
-              auth:
+              serverRef:
                 properties:
-                  accessKey:
+                  name:
                     type: string
-                  secretKey:
+                  namespace:
                     type: string
                 required:
-                - accessKey
-                - secretKey
+                - name
+                - namespace
                 type: object
-              endpoint:
-                type: string
-              tls:
-                default: true
-                type: boolean
-              type:
-                default: minio
-                enum:
-                - minio
-                type: string
             required:
-            - auth
-            - endpoint
-            - tls
-            - type
+            - serverRef
             type: object
           status:
             properties:

@@ -14,6 +14,32 @@ rules:
 - apiGroups:
   - s3.odit.services
   resources:
+  - s3buckets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3buckets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3buckets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - s3.odit.services
+  resources:
   - s3servers
   verbs:
   - create
