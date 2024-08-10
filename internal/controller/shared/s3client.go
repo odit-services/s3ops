@@ -26,4 +26,5 @@ type S3Client interface {
 	IsOnline() bool
 	BucketExists(context.Context, string) (bool, error)
 	MakeBucket(context.Context, string, minio.MakeBucketOptions) error
+	RemoveBucket(context.Context, string) error
 }
