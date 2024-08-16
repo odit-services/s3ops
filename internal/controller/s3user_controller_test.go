@@ -213,6 +213,9 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				It("Should call the make user function once", func() {
 					Expect(s3MockSpy.MakeUserCalled).To(Equal(1))
 				})
+				It("Should call the policy exists function once for every referenced policy", func() {
+					Expect(s3MockSpy.PolicyExistsCalled).To(Equal(len(s3User.Spec.PolicyRefs)))
+				})
 				It("Should call the assign policy function once for every referenced policy", func() {
 					Expect(s3MockSpy.ApplyPolicyToUserCalled).To(Equal(len(s3User.Spec.PolicyRefs)))
 				})
