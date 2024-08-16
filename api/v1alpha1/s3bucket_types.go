@@ -40,6 +40,11 @@ type S3BucketSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=false
 	DisableNameGeneration bool `json:"disableNameGeneration" yaml:"disableNameGeneration"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=false
+	SoftDelete bool `json:"softDelete" yaml:"softDelete"`
 }
 
 type ServerReference struct {
