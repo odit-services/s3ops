@@ -135,7 +135,8 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	var bucketName string
 	if s3Bucket.Status.Name != "" {
 		bucketName = s3Bucket.Status.Name
-	} else if s3Bucket.Spec.GenerateBucketName {
+	} else if !s3Bucket.Spec.DisableNameGeneration {
+		r.logger.Debugw("Generating bucket name", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace)
 		nanoID, err := gonanoid.New()
 		if err != nil {
 			r.logger.Errorw("Failed to generate bucket name", "name", s3Bucket.Name, "error", err)
@@ -151,6 +152,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		bucketName = fmt.Sprintf("%s-%s-%s", s3Bucket.Name, s3Bucket.Namespace, nanoID)
 	} else {
+		r.logger.Debugw("Using bucket name from spec", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace)
 		bucketName = s3Bucket.Name
 	}
 	s3Bucket.Status.Name = bucketName

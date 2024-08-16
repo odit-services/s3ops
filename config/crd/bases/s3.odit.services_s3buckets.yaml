@@ -39,8 +39,8 @@ spec:
           spec:
             description: S3BucketSpec defines the desired state of S3Bucket
             properties:
-              generateBucketName:
-                default: true
+              disableNameGeneration:
+                default: false
                 type: boolean
               objectLocking:
                 default: false

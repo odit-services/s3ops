@@ -38,8 +38,8 @@ type S3BucketSpec struct {
 
 	// +optional
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=true
-	GenerateBucketName bool `json:"generateBucketName" yaml:"generateBucketName"`
+	// +kubebuilder:default=false
+	DisableNameGeneration bool `json:"disableNameGeneration" yaml:"disableNameGeneration"`
 }
 
 type ServerReference struct {
