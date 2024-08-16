@@ -144,6 +144,49 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).To(BeTrue())
 				})
+				It("Should set the status name field to a name matching the generation spec", func() {
+					Expect(s3Bucket.Status.Name).To(MatchRegexp("test-s3-bucket-nonexistent-default-.+"))
+				})
+			})
+			When("A new valid s3bucket is created with a valid s3server and name generation disabled", func() {
+				var err error
+				var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-bucket-nonexistent-nogen",
+						Namespace: "default",
+					}
+					s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3BucketSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3Server.Name,
+								Namespace: s3Server.Namespace,
+							},
+							Region:                "eu-west-1",
+							ObjectLocking:         false,
+							DisableNameGeneration: true,
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+				})
+
+				It("Should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("Should set the status name field to a name matching the generation spec", func() {
+					Expect(s3Bucket.Status.Name).To(Equal("test-s3-bucket-nonexistent-nogen"))
+				})
 			})
 			When("A new valid s3bucket is created with a nonexistant s3server", func() {
 				var err error
