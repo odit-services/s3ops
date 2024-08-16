@@ -25,10 +25,13 @@ import (
 
 // S3UserSpec defines the desired state of S3User
 type S3UserSpec struct {
+	// +kubebuilder:validation:Required
+	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
+
 	// +optional
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=""
-	ExistingSecret string `json:"existingSecret" yaml:"existingSecret"`
+	ExistingSecretRef string `json:"existingSecretRef" yaml:"existingSecretRef"`
 }
 
 // S3UserStatus defines the observed state of S3User
@@ -37,7 +40,7 @@ type S3UserStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 	Created    bool               `json:"created,omitempty"`
-	SecretName string             `json:"secretRef,omitempty"`
+	SecretRef  string             `json:"secretRef,omitempty"`
 }
 
 //+kubebuilder:object:root=true
