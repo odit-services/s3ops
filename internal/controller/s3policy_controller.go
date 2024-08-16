@@ -86,7 +86,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
 				Type:               s3oditservicesv1alpha1.ConditionFailed,
 				Status:             metav1.ConditionFalse,
-				Reason:             s3oditservicesv1alpha1.ReasonFinalizerFailed,
+				Reason:             s3oditservicesv1alpha1.ReasonFinalizerFailedToApply,
 				Message:            "Failed to add finalizer to S3Policy",
 				LastTransitionTime: metav1.Now(),
 			})
@@ -144,6 +144,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			})
 			r.Status().Update(ctx, s3Policy)
 			return ctrl.Result{}, err
+		}
 	}
 
 	r.logger.Infow("S3Policy reconciled", "name", req.Name, "namespace", req.Namespace)
