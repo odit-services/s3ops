@@ -139,7 +139,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 		secret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-s3Creds", s3User.Name),
+				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
 				Namespace: s3User.Namespace,
 			},
 			StringData: map[string]string{
