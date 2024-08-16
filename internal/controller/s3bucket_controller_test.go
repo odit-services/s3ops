@@ -296,4 +296,111 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			})
 		})
 	})
+	Describe("Testing the reconciliation of a deleted s3bucket", func() {
+		When("A valid s3bucket is deleted", func() {
+			var err error
+			var result ctrl.Result
+			var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+			BeforeAll(func() {
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3-bucket-deleteme",
+					Namespace: "default",
+				}
+				s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3BucketSpec{
+						ServerRef: s3oditservicesv1alpha1.ServerReference{
+							Name:      s3Server.Name,
+							Namespace: s3Server.Namespace,
+						},
+						Region:        "eu-west-1",
+						ObjectLocking: false,
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+				result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+			})
+
+			It("Should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("should return a result with requeue set higher than 0", func() {
+				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+			})
+			It("Should call the bucket exists function once", func() {
+				Expect(s3MockSpy.BucketExistsCalled).To(Equal(1))
+			})
+			It("Should call the make bucket function once", func() {
+				Expect(s3MockSpy.RemoveBucketCalled).To(Equal(1))
+			})
+			It("Should have deleted the s3bucket", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Bucket.Name,
+					Namespace: s3Bucket.Namespace,
+				}, &s3Bucket)).To(HaveOccurred())
+			})
+		})
+		When("A valid s3bucket is deleted", func() {
+			var err error
+			var result ctrl.Result
+			var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+			BeforeAll(func() {
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3-bucket-deleteme-soft",
+					Namespace: "default",
+				}
+				s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3BucketSpec{
+						ServerRef: s3oditservicesv1alpha1.ServerReference{
+							Name:      s3Server.Name,
+							Namespace: s3Server.Namespace,
+						},
+						Region:        "eu-west-1",
+						ObjectLocking: false,
+						SoftDelete:    true,
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+				result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+			})
+
+			It("Should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("should return a result with requeue set higher than 0", func() {
+				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+			})
+			It("Should call the bucket exists function once", func() {
+				Expect(s3MockSpy.BucketExistsCalled).To(Equal(1))
+			})
+			It("Should not call the make bucket function", func() {
+				Expect(s3MockSpy.RemoveBucketCalled).To(Equal(0))
+			})
+			It("Should have deleted the s3bucket", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Bucket.Name,
+					Namespace: s3Bucket.Namespace,
+				}, &s3Bucket)).To(HaveOccurred())
+			})
+		})
+	})
 })
