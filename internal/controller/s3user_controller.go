@@ -138,14 +138,13 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 
-		accessKey := fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID)
 		secret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
 				Namespace: s3User.Namespace,
 			},
 			StringData: map[string]string{
-				"accessKey": accessKey[0:19],
+				"accessKey": nanoID,
 				"secretKey": secretKey,
 			},
 		}
