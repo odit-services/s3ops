@@ -98,7 +98,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	minioClient, condition, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	s3Client, condition, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, condition)
@@ -131,7 +131,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	s3Bucket.Status.Name = bucketName
 
-	bucketExists, err := minioClient.BucketExists(context.Background(), bucketName)
+	bucketExists, err := s3Client.BucketExists(context.Background(), bucketName)
 	if err != nil {
 		r.logger.Errorw("Failed to check if bucket exists", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
 		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
@@ -146,7 +146,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !bucketExists {
-		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{
+		err = s3Client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{
 			Region:        s3Bucket.Spec.Region,
 			ObjectLocking: s3Bucket.Spec.ObjectLocking,
 		})

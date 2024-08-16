@@ -28,7 +28,7 @@ func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3Clien
 		}, err
 	}
 
-	minioClient, err := factory.NewClient(*s3Server)
+	s3Client, err := factory.NewClient(*s3Server)
 	if err != nil {
 		return nil, metav1.Condition{
 			Type:    v1alpha1.ConditionFailed,
@@ -41,5 +41,5 @@ func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3Clien
 		}, err
 	}
 
-	return minioClient, metav1.Condition{}, nil
+	return s3Client, metav1.Condition{}, nil
 }
