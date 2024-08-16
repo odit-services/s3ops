@@ -103,7 +103,48 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	//TODO: Handle policy creation
+	policyExists, err := s3AdminClient.PolicyExists(ctx, s3Policy.Name)
+	if err != nil {
+		r.logger.Errorw("Failed to check if policy exists", "name", req.Name, "namespace", req.Namespace, "error", err)
+		s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+			Type:               s3oditservicesv1alpha1.ConditionFailed,
+			Status:             metav1.ConditionFalse,
+			Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+			Message:            "Failed to check if policy exists",
+			LastTransitionTime: metav1.Now(),
+		})
+		r.Status().Update(ctx, s3Policy)
+		return ctrl.Result{}, err
+	}
+
+	if !policyExists {
+		err = s3AdminClient.MakePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
+		if err != nil {
+			r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            "Failed to create policy",
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3Policy)
+			return ctrl.Result{}, err
+		}
+	} else {
+		err = s3AdminClient.UpdatePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
+		if err != nil {
+			r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            "Failed to update policy",
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3Policy)
+			return ctrl.Result{}, err
+	}
 
 	r.logger.Infow("S3Policy reconciled", "name", req.Name, "namespace", req.Namespace)
 	s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{

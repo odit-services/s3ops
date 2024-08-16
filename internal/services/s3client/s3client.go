@@ -51,5 +51,6 @@ type S3AdminClient interface {
 	RemoveUser(context.Context, string) error
 	PolicyExists(context.Context, string) (bool, error)
 	MakePolicy(context.Context, string, string) error
+	UpdatePolicy(context.Context, string, string) error
 	RemovePolicy(context.Context, string) error
 }
