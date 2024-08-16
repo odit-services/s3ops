@@ -94,6 +94,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				It("should set the status condition to type ready", func() {
 					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
 				})
+				It("should set the status condition to type online", func() {
+					Expect(s3Server.Status.Online).To(BeTrue())
+				})
 			})
 			When("A new invalid s3server is with an non-existant domain", func() {
 				var err error
@@ -135,6 +138,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				It("should set the status condition to type failed", func() {
 					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
 				})
+				It("should set the online status to false", func() {
+					Expect(s3Server.Status.Online).To(BeFalse())
+				})
 			})
 			When("A new invalid s3server is with an wrong credentials", func() {
 				var err error
@@ -175,6 +181,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				})
 				It("should set the status condition to type failed", func() {
 					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				})
+				It("should set the online status to false", func() {
+					Expect(s3Server.Status.Online).To(BeFalse())
 				})
 			})
 		})
@@ -228,6 +237,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			It("should set the status condition to type ready", func() {
 				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
 			})
+			It("should set the online status to true", func() {
+				Expect(s3Server.Status.Online).To(BeTrue())
+			})
 		})
 
 		When("An invalid s3server is updated with a valid endpoint", func() {
@@ -278,6 +290,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			It("should set the status condition to type ready", func() {
 				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
 			})
+			It("should set the online status to true", func() {
+				Expect(s3Server.Status.Online).To(BeTrue())
+			})
 		})
 		When("A valid s3server is updated with a new invalid endpoint", func() {
 			var err error
@@ -322,6 +337,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			})
 			It("should set the status condition to type failed", func() {
 				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+			})
+			It("should set the online status to false", func() {
+				Expect(s3Server.Status.Online).To(BeFalse())
 			})
 		})
 	})
