@@ -141,6 +141,9 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should add the finalizer to the s3bucket", func() {
 					Expect(controllerutil.ContainsFinalizer(&s3Bucket, "s3.odit.services/bucket")).To(BeTrue())
 				})
+				It("Should set the status created to true", func() {
+					Expect(s3Bucket.Status.Created).To(BeTrue())
+				})
 			})
 			When("A new valid s3bucket is created with a nonexistant s3server", func() {
 				var err error
@@ -180,6 +183,9 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("should set the status condition to type failed", func() {
 					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
 				})
+				It("Should not set the status created to true", func() {
+					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
+				})
 			})
 			When("A new valid s3bucket is created with a invalid s3server", func() {
 				var err error
@@ -218,6 +224,9 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				It("should set the status condition to type failed", func() {
 					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				})
+				It("Should not set the status created to true", func() {
+					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
 				})
 			})
 		})
