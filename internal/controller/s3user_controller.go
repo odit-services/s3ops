@@ -119,54 +119,28 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					"secretKey": "TODO:",
 				},
 			}
-			err = r.Create(ctx, secret)
+			condition, err = createSecret(ctx, r.Client, secret)
 			if err != nil {
 				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
-					Type:               s3oditservicesv1alpha1.ConditionFailed,
-					Status:             metav1.ConditionFalse,
-					Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
-					Message:            "Failed to create secret",
-					LastTransitionTime: metav1.Now(),
-				})
+				s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 				r.Status().Update(ctx, s3User)
 				return ctrl.Result{}, err
 			}
 		} else {
-			// Get the secret
-			err = r.Get(ctx, client.ObjectKey{
-				Namespace: req.Namespace,
-				Name:      s3User.Spec.ExistingSecretRef,
-			}, secret)
+			secret, condition, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Spec.ExistingSecretRef)
 			if err != nil {
 				r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
-					Type:               s3oditservicesv1alpha1.ConditionFailed,
-					Status:             metav1.ConditionFalse,
-					Reason:             s3oditservicesv1alpha1.ReasonNotFound,
-					Message:            "Secret not found",
-					LastTransitionTime: metav1.Now(),
-				})
+				s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 				r.Status().Update(ctx, s3User)
 				return ctrl.Result{}, err
 			}
 		}
 		s3User.Status.SecretRef = secret.Name
 	} else {
-		// Get the secret
-		err = r.Get(ctx, client.ObjectKey{
-			Namespace: req.Namespace,
-			Name:      s3User.Status.SecretRef,
-		}, secret)
+		secret, condition, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Spec.ExistingSecretRef)
 		if err != nil {
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
-				Type:               s3oditservicesv1alpha1.ConditionFailed,
-				Status:             metav1.ConditionFalse,
-				Reason:             s3oditservicesv1alpha1.ReasonNotFound,
-				Message:            "Secret not found",
-				LastTransitionTime: metav1.Now(),
-			})
+			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 			r.Status().Update(ctx, s3User)
 			return ctrl.Result{}, err
 		}
