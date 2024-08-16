@@ -61,7 +61,6 @@ spec:
                 default: false
                 type: boolean
             required:
-            - region
             - serverRef
             type: object
           status:

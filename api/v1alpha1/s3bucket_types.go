@@ -28,6 +28,8 @@ type S3BucketSpec struct {
 	// +kubebuilder:validation:Required
 	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
 
+	// +optional
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Required
 	Region string `json:"region" yaml:"region"`
 

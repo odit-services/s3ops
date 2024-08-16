@@ -62,7 +62,6 @@ spec:
             required:
             - auth
             - endpoint
-            - tls
             - type
             type: object
           status:
