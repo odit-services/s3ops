@@ -162,6 +162,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.Status().Update(ctx, s3Bucket)
 			return ctrl.Result{}, err
 		}
+		s3Bucket.Status.Created = true
 	}
 
 	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace)
