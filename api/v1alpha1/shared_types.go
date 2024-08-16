@@ -13,4 +13,5 @@ const (
 	ReasonOffline                = "Offline"
 	ReasonFinalizerFailedToApply = "FinalizerFailedToApply"
 	ReasonRequestFailed          = "RequestFailed"
+	ReasonCreateFailed           = "CreateFailed"
 )
