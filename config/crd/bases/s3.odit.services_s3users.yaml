@@ -40,6 +40,7 @@ spec:
             description: S3UserSpec defines the desired state of S3User
             properties:
               policyRefs:
+                default: []
                 items:
                   type: string
                 type: array
@@ -54,7 +55,6 @@ spec:
                 - namespace
                 type: object
             required:
-            - policyRefs
             - serverRef
             type: object
           status:
