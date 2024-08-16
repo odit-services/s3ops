@@ -34,7 +34,7 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/minio/minio-go/v7"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/shared"
+	s3client "github.com/odit-services/s3ops/internal/controller/s3client"
 )
 
 // S3BucketReconciler reconciles a S3Bucket object
@@ -98,37 +98,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	s3Server := &s3oditservicesv1alpha1.S3Server{}
-	err = r.Get(ctx, client.ObjectKey{
-		Namespace: s3Bucket.Spec.ServerRef.Namespace,
-		Name:      s3Bucket.Spec.ServerRef.Name,
-	}, s3Server)
+	minioClient, condition, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
-		r.logger.Errorw("Failed to get S3Server resource", "name", s3Bucket.Spec.ServerRef.Name, "namespace", s3Bucket.Spec.ServerRef.Namespace, "error", err)
-		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-			Type:               s3oditservicesv1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             s3oditservicesv1alpha1.ReasonNotFound,
-			Message:            "S3Server resource not found",
-			LastTransitionTime: metav1.Now(),
-		})
+		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
+		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, condition)
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, err
-	}
-
-	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)
-	if err != nil {
-		r.logger.Errorw("Failed to create Minio client for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Bucket.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-			Type:    s3oditservicesv1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  err.Error(),
-			Message: fmt.Sprintf("Failed to create Minio client: %v", err),
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		})
-		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, err
 	}
 

@@ -10,7 +10,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/shared"
+	s3client "github.com/odit-services/s3ops/internal/controller/s3client"
 )
 
 type S3ClientFactoryMocked struct {

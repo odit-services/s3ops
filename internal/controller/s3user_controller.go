@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/shared"
+	s3client "github.com/odit-services/s3ops/internal/controller/s3client"
 )
 
 // S3UserReconciler reconciles a S3User object
