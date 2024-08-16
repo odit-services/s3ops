@@ -27,11 +27,6 @@ import (
 type S3UserSpec struct {
 	// +kubebuilder:validation:Required
 	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
-
-	// +optional
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=""
-	ExistingSecretRef string `json:"existingSecretRef" yaml:"existingSecretRef"`
 }
 
 // S3UserStatus defines the observed state of S3User

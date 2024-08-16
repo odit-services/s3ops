@@ -39,9 +39,6 @@ spec:
           spec:
             description: S3UserSpec defines the desired state of S3User
             properties:
-              existingSecretRef:
-                default: ""
-                type: string
               serverRef:
                 properties:
                   name:
