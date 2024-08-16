@@ -1,22 +1,41 @@
 # s3ops
-// TODO(user): Add simple overview of use/purpose
+
+A kubernetes operator to manage S3 resources.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+### Supported Resources
+
+- S3Server: The connection to an existing s3 backend
+  - Actions: Check online status
+- S3Bucket: A bucket in the s3 backend
+  - Actions: Create, Delete
+- S3Policy: A policy that can be attached to users
+  - Actions: Create, Update, Delete
+- S3User: A user with access to the s3 backend
+  - Actions: Create, Delete, AttachPolicy
+
+### Supported Backends
+
+| Backend | S3Server | S3Bucket | S3Policy | S3User |
+|---------|----------|----------|----------|--------|
+| Minio   | Yes      | Yes      | Yes      | Yes    |
 
 ## Getting Started
 
 ### Prerequisites
+
 - go version v1.21.0+
 - docker version 17.03+.
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
 ### To Deploy on the cluster
+
 **Build and push your image to the location specified by `IMG`:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/s3ops:tag
+make docker-build docker-push IMG=ghcr.io/odit-services/s3ops:tag
 ```
 
 **NOTE:** This image ought to be published in the personal registry you specified.
@@ -32,7 +51,7 @@ make install
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-make deploy IMG=<some-registry>/s3ops:tag
+make deploy IMG=ghcr.io/odit-services/s3ops:tag
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
@@ -48,6 +67,7 @@ kubectl apply -k config/samples/
 >**NOTE**: Ensure that the samples has default values to test it out.
 
 ### To Uninstall
+
 **Delete the instances (CRs) from the cluster:**
 
 ```sh
@@ -73,7 +93,7 @@ Following are the steps to build the installer and distribute this project to us
 1. Build the installer for the image built and published in the registry:
 
 ```sh
-make build-installer IMG=<some-registry>/s3ops:tag
+make build-installer IMG=ghcr.io/odit-services/s3ops:tag
 ```
 
 NOTE: The makefile target mentioned above generates an 'install.yaml'
@@ -90,7 +110,17 @@ kubectl apply -f https://raw.githubusercontent.com/<org>/s3ops/<tag or branch>/d
 ```
 
 ## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
+
+Feel free to contribute to this project by following the steps below:
+
+1. Fork the repository
+2. Create a new branch (git checkout -b feat/some-feature)
+3. Make changes
+4. Commit your changes (git commit -am 'Add some feature')
+5. Push to the branch (git push origin feat/some-feature)
+6. Create a new Pull Request
+
+All new features and bug fixes should have associated tests.
 
 **NOTE:** Run `make help` for more information on all potential `make` targets
 
@@ -111,4 +141,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
