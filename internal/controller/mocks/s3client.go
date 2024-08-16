@@ -223,8 +223,5 @@ func (c *S3AdminClientMocked) ApplyPolicyToUser(ctx context.Context, policyName 
 	if !slices.Contains(c.S3ClientMockEnv.ExistingPolicies, policyName) {
 		return fmt.Errorf("policy does not exist")
 	}
-	if !slices.Contains(c.S3ClientMockEnv.ExistingUsers, userName) {
-		return fmt.Errorf("user does not exist")
-	}
 	return nil
 }

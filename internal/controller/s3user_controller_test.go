@@ -39,7 +39,6 @@ var _ = Describe("S3User Controller", Ordered, func() {
 	s3MockSpy := mocks.S3ClientMockSpy{}
 	var s3Server *s3oditservicesv1alpha1.S3Server
 	var s3ServerBroken *s3oditservicesv1alpha1.S3Server
-	var s3Policy *s3oditservicesv1alpha1.S3Policy
 	var testReconciler *S3UserReconciler
 
 	BeforeAll(func() {
@@ -57,15 +56,6 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		serverReconciler := &S3ServerReconciler{
-			Client: k8sClient,
-			Scheme: testScheme,
-			logger: zap.NewNop().Sugar(),
-			S3ClientFactory: &mocks.S3ClientFactoryMocked{
-				S3ClientMockEnv: &s3MockEnv,
-				S3ClientMockSpy: &s3MockSpy,
-			},
-		}
-		policyReconciler := &S3PolicyReconciler{
 			Client: k8sClient,
 			Scheme: testScheme,
 			logger: zap.NewNop().Sugar(),
@@ -127,28 +117,6 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				Namespace: s3ServerBroken.Namespace,
 			},
 		})
-
-		By("creating a test s3 policy")
-		s3Policy = &s3oditservicesv1alpha1.S3Policy{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-s3-policy",
-				Namespace: "default",
-			},
-			Spec: s3oditservicesv1alpha1.S3PolicySpec{
-				ServerRef: s3oditservicesv1alpha1.ServerReference{
-					Name:      s3Server.Name,
-					Namespace: s3Server.Namespace,
-				},
-				PolicyContent: `{ "Version": "2012-10-17" }`,
-			},
-		}
-		Expect(k8sClient.Create(ctx, s3Policy)).To(Succeed())
-		policyReconciler.Reconcile(ctx, ctrl.Request{
-			NamespacedName: types.NamespacedName{
-				Name:      s3Policy.Name,
-				Namespace: s3Policy.Namespace,
-			},
-		})
 	})
 	Describe("Testing the reconcoile function", func() {
 		Describe("Testing the reconciliation of a new s3user", func() {
@@ -173,7 +141,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 								Namespace: s3Server.Namespace,
 							},
 							PolicyRefs: []string{
-								s3Policy.Name,
+								s3MockEnv.ExistingPolicies[0],
 							},
 						},
 					}
