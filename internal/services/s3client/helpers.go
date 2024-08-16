@@ -37,6 +37,16 @@ func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3Clien
 		return nil, condition, err
 	}
 
+	if !s3Server.Status.Online {
+		return nil, metav1.Condition{
+			Type:               v1alpha1.ConditionFailed,
+			Status:             metav1.ConditionFalse,
+			Reason:             v1alpha1.ReasonOffline,
+			Message:            "S3Server is offline",
+			LastTransitionTime: metav1.Now(),
+		}, fmt.Errorf("S3Server is offline")
+	}
+
 	s3Client, err := factory.NewClient(*s3Server)
 	if err != nil {
 		return nil, metav1.Condition{
@@ -57,6 +67,16 @@ func GetS3AdminClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3
 	s3Server, condition, err := getS3ServerObject(serverRef, r)
 	if err != nil {
 		return nil, condition, err
+	}
+
+	if !s3Server.Status.Online {
+		return nil, metav1.Condition{
+			Type:               v1alpha1.ConditionFailed,
+			Status:             metav1.ConditionFalse,
+			Reason:             v1alpha1.ReasonOffline,
+			Message:            "S3Server is offline",
+			LastTransitionTime: metav1.Now(),
+		}, fmt.Errorf("S3Server is offline")
 	}
 
 	s3AdminClient, err := factory.NewAdminClient(*s3Server)
