@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/minio/minio-go/v7"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/controller/shared"
@@ -131,9 +132,32 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	bucketExists, err := minioClient.BucketExists(context.Background(), s3Bucket.Name)
+	var bucketName string
+	if s3Bucket.Status.Name != "" {
+		bucketName = s3Bucket.Status.Name
+	} else if s3Bucket.Spec.GenerateBucketName {
+		nanoID, err := gonanoid.New()
+		if err != nil {
+			r.logger.Errorw("Failed to generate bucket name", "name", s3Bucket.Name, "error", err)
+			s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Failed to generate bucket name: %v", err),
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3Bucket)
+			return ctrl.Result{}, err
+		}
+		bucketName = fmt.Sprintf("%s-%s-%s", s3Bucket.Name, s3Bucket.Namespace, nanoID)
+	} else {
+		bucketName = s3Bucket.Name
+	}
+	s3Bucket.Status.Name = bucketName
+
+	bucketExists, err := minioClient.BucketExists(context.Background(), bucketName)
 	if err != nil {
-		r.logger.Errorw("Failed to check if bucket exists", "name", s3Bucket.Name, "error", err)
+		r.logger.Errorw("Failed to check if bucket exists", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
 		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
 			Type:               s3oditservicesv1alpha1.ConditionFailed,
 			Status:             metav1.ConditionFalse,
@@ -146,12 +170,12 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !bucketExists {
-		err = minioClient.MakeBucket(context.Background(), s3Bucket.Name, minio.MakeBucketOptions{
+		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{
 			Region:        s3Bucket.Spec.Region,
 			ObjectLocking: s3Bucket.Spec.ObjectLocking,
 		})
 		if err != nil {
-			r.logger.Errorw("Failed to create bucket", "name", s3Bucket.Name, "error", err)
+			r.logger.Errorw("Failed to create bucket", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
 			s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
 				Type:               s3oditservicesv1alpha1.ConditionFailed,
 				Status:             metav1.ConditionFalse,
@@ -165,7 +189,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		s3Bucket.Status.Created = true
 	}
 
-	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace)
+	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
 	s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
 		Type:    s3oditservicesv1alpha1.ConditionReady,
 		Status:  metav1.ConditionTrue,
