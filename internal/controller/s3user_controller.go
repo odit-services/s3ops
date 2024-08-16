@@ -226,6 +226,51 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		s3User.Status.Created = true
 	}
 
+	for _, policyRef := range s3User.Spec.PolicyRefs {
+		r.logger.Debugw("Applying policy to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
+		policyExists, err := s3AdminClient.PolicyExists(ctx, policyRef)
+		if err != nil {
+			r.logger.Errorw("Failed to check if policy exists", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Failed to check if policy exists: %v", err),
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
+		}
+
+		if !policyExists {
+			r.logger.Errorw("Policy does not exist", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Policy %s does not exist", policyRef),
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, fmt.Errorf("policy %s does not exist", policyRef)
+		}
+
+		err = s3AdminClient.ApplyPolicyToUser(ctx, policyRef, secret.StringData["accessKey"])
+		if err != nil {
+			r.logger.Errorw("Failed to apply policy to user", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Failed to apply policy to user: %v", err),
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
+		}
+		r.logger.Debugw("Policy applied to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
+	}
+
 	r.logger.Infow("Finished reconciling S3User", "name", req.Name, "namespace", req.Namespace)
 	s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
 		Type:               s3oditservicesv1alpha1.ConditionReady,
