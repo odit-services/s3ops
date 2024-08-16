@@ -2,7 +2,6 @@ package s3client
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/minio/madmin-go"
 )
@@ -22,14 +21,23 @@ func NewMinioAdminClient(endpoint string, accessKey string, secretKey string, tl
 	}, nil
 }
 
-func (c *MinioAdminClient) UserExists(ctx context.Context, userName string) (bool, error) {
-	return false, fmt.Errorf("not implemented")
+func (c *MinioAdminClient) UserExists(ctx context.Context, accessKey string) (bool, error) {
+	users, err := c.Client.ListUsers(context.Background())
+	if err != nil {
+		return false, err
+	}
+	for k := range users {
+		if k == accessKey {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
-func (c *MinioAdminClient) MakeUser(ctx context.Context, userName string, password string) error {
-	return fmt.Errorf("not implemented")
+func (c *MinioAdminClient) MakeUser(ctx context.Context, accessKey string, secretKey string) error {
+	return c.Client.AddUser(context.Background(), accessKey, secretKey)
 }
 
-func (c *MinioAdminClient) RemoveUser(ctx context.Context, userName string) error {
-	return fmt.Errorf("not implemented")
+func (c *MinioAdminClient) RemoveUser(ctx context.Context, accessKey string) error {
+	return c.Client.RemoveUser(context.Background(), accessKey)
 }
