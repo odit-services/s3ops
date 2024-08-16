@@ -20,15 +20,18 @@ import (
 	"context"
 	"os"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // S3PolicyReconciler reconciles a S3Policy object
@@ -45,9 +48,80 @@ type S3PolicyReconciler struct {
 
 func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	//TODO: Implement
+	r.logger.Infow("Reconciling S3Policy", "name", req.Name, "namespace", req.Namespace)
 
-	return ctrl.Result{}, nil
+	s3Policy := &s3oditservicesv1alpha1.S3Policy{}
+	err := r.Get(ctx, req.NamespacedName, s3Policy)
+	if err != nil {
+		r.logger.Errorw("Failed to get S3Policy resource", "name", req.Name, "namespace", req.Namespace, "error", err)
+		s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+			Type:               s3oditservicesv1alpha1.ConditionFailed,
+			Status:             metav1.ConditionFalse,
+			Reason:             s3oditservicesv1alpha1.ReasonNotFound,
+			Message:            err.Error(),
+			LastTransitionTime: metav1.Now(),
+		})
+
+		return ctrl.Result{}, err
+	}
+
+	s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+		Type:               s3oditservicesv1alpha1.ConditionReconciling,
+		Status:             metav1.ConditionTrue,
+		Reason:             s3oditservicesv1alpha1.ConditionReconciling,
+		Message:            "S3Policy reconciling",
+		LastTransitionTime: metav1.Now(),
+	})
+	err = r.Status().Update(ctx, s3Policy)
+	if err != nil {
+		r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return ctrl.Result{}, err
+	}
+
+	if !controllerutil.ContainsFinalizer(s3Policy, "s3.odit.services/policy") {
+		controllerutil.AddFinalizer(s3Policy, "s3.odit.services/policy")
+		err = r.Update(ctx, s3Policy)
+		if err != nil {
+			r.logger.Errorw("Failed to add finalizer to S3Policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonFinalizerFailed,
+				Message:            "Failed to add finalizer to S3Policy",
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3Policy)
+			return ctrl.Result{}, err
+		}
+	}
+
+	s3AdminClient, condition, err := s3client.GetS3AdminClientFromS3Server(s3Policy.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	if err != nil {
+		r.logger.Errorw("Failed to get S3AdminClient", "name", req.Name, "namespace", req.Namespace, "error", err)
+		s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, condition)
+		r.Status().Update(ctx, s3Policy)
+		return ctrl.Result{}, err
+	}
+
+	//TODO: Handle policy creation
+
+	r.logger.Infow("S3Policy reconciled", "name", req.Name, "namespace", req.Namespace)
+	s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+		Type:               s3oditservicesv1alpha1.ConditionReady,
+		Status:             metav1.ConditionTrue,
+		Reason:             s3oditservicesv1alpha1.ConditionReady,
+		Message:            "S3Policy reconciled",
+		LastTransitionTime: metav1.Now(),
+	})
+	err = r.Status().Update(ctx, s3Policy)
+	if err != nil {
+		r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{
+		RequeueAfter: 5 * time.Minute,
+	}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
