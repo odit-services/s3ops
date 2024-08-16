@@ -125,7 +125,13 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, err
 		}
 		bucketPrefix := fmt.Sprintf("%s-%s", s3Bucket.Name, s3Bucket.Namespace)
-		bucketName = fmt.Sprintf("%s-%s", bucketPrefix[0:39], strings.ToLower(nanoID))
+		var truncateAt int
+		if len(bucketPrefix) > 39 {
+			truncateAt = 39
+		} else {
+			truncateAt = len(bucketPrefix) - 1
+		}
+		bucketName = fmt.Sprintf("%s-%s", bucketPrefix[0:truncateAt], strings.ToLower(nanoID))
 	} else {
 		r.logger.Debugw("Using bucket name from spec", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace)
 		bucketName = s3Bucket.Name
