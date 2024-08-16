@@ -30,8 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
+	gopassword "github.com/sethvargo/go-password/password"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -109,14 +111,42 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if s3User.Status.SecretRef == "" {
 		if s3User.Spec.ExistingSecretRef == "" {
 			// Create the secret
+			nanoID, err := gonanoid.New(32)
+			if err != nil {
+				r.logger.Errorw("Failed to generate nanoID", "error", err)
+				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+					Type:               s3oditservicesv1alpha1.ConditionFailed,
+					Status:             metav1.ConditionFalse,
+					Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
+					Message:            "Failed to generate nanoID",
+					LastTransitionTime: metav1.Now(),
+				})
+				r.Status().Update(ctx, s3User)
+				return ctrl.Result{}, err
+			}
+
+			secretKey, err := gopassword.Generate(64, 20, 0, true, false)
+			if err != nil {
+				r.logger.Errorw("Failed to generate secretKey", "error", err)
+				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+					Type:               s3oditservicesv1alpha1.ConditionFailed,
+					Status:             metav1.ConditionFalse,
+					Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
+					Message:            "Failed to generate secretKey",
+					LastTransitionTime: metav1.Now(),
+				})
+				r.Status().Update(ctx, s3User)
+				return ctrl.Result{}, err
+			}
+
 			secret = &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      fmt.Sprintf("%s-s3Creds", s3User.Name),
 					Namespace: s3User.Namespace,
 				},
 				StringData: map[string]string{
-					"accessKey": "TODO:",
-					"secretKey": "TODO:",
+					"accessKey": fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID),
+					"secretKey": secretKey,
 				},
 			}
 			condition, err = createSecret(ctx, r.Client, secret)

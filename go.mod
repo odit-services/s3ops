@@ -60,6 +60,7 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/secure-io/sio-go v0.3.1 // indirect
+	github.com/sethvargo/go-password v0.3.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.22.9 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
