@@ -67,7 +67,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3User)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
@@ -80,7 +80,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	err = r.Status().Update(ctx, s3User)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if !controllerutil.ContainsFinalizer(s3User, "s3.odit.services/user") {
@@ -96,7 +96,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
@@ -105,7 +105,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		r.logger.Errorw("Failed to create S3 admin client for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 		r.Status().Update(ctx, s3User)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	var secret *corev1.Secret
@@ -121,7 +121,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 
 		secretKey, err := gopassword.Generate(64, 20, 0, true, true)
@@ -135,7 +135,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 
 		secret = &corev1.Secret{
@@ -153,7 +153,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		s3User.Status.SecretRef = secret.Name
 		r.Status().Update(ctx, s3User)
@@ -163,7 +163,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
@@ -178,7 +178,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3User)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if s3User.DeletionTimestamp != nil {
@@ -197,14 +197,14 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					LastTransitionTime: metav1.Now(),
 				})
 				r.Status().Update(ctx, s3User)
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 			}
 		}
 		controllerutil.RemoveFinalizer(s3User, "s3.odit.services/user")
 		err := r.Update(ctx, s3User)
 		if err != nil {
 			r.logger.Errorw("Failed to remove finalizer from S3User resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		return ctrl.Result{}, nil
 	}
@@ -222,7 +222,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		s3User.Status.Created = true
 	}
@@ -240,7 +240,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 
 		if !policyExists {
@@ -267,7 +267,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3User)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		r.logger.Debugw("Policy applied to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
 	}
@@ -283,7 +283,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	err = r.Status().Update(ctx, s3User)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	return ctrl.Result{

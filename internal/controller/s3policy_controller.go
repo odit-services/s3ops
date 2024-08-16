@@ -64,7 +64,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
@@ -77,7 +77,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Policy)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if !controllerutil.ContainsFinalizer(s3Policy, "s3.odit.services/policy") {
@@ -93,7 +93,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Policy)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
@@ -102,7 +102,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.logger.Errorw("Failed to get S3AdminClient", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, condition)
 		r.Status().Update(ctx, s3Policy)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	policyExists, err := s3AdminClient.PolicyExists(ctx, s3Policy.Name)
@@ -116,7 +116,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Policy)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if s3Policy.DeletionTimestamp != nil {
@@ -135,14 +135,14 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					LastTransitionTime: metav1.Now(),
 				})
 				r.Status().Update(ctx, s3Policy)
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 			}
 		}
 		controllerutil.RemoveFinalizer(s3Policy, "s3.odit.services/policy")
 		err := r.Update(ctx, s3Policy)
 		if err != nil {
 			r.logger.Errorw("Failed to remove finalizer from S3Policy resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		return ctrl.Result{}, nil
 	}
@@ -159,7 +159,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Policy)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	} else {
 		err = s3AdminClient.UpdatePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
@@ -173,7 +173,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Policy)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
@@ -188,7 +188,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Policy)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	return ctrl.Result{

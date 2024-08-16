@@ -66,7 +66,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
@@ -79,7 +79,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Bucket resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if !controllerutil.ContainsFinalizer(s3Bucket, "s3.odit.services/bucket") {
@@ -95,7 +95,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
@@ -104,7 +104,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, condition)
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	var bucketName string
@@ -123,7 +123,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		bucketPrefix := fmt.Sprintf("%s-%s", s3Bucket.Name, s3Bucket.Namespace)
 		var truncateAt int
@@ -150,7 +150,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastTransitionTime: metav1.Now(),
 		})
 		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if s3Bucket.DeletionTimestamp != nil {
@@ -172,14 +172,14 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					LastTransitionTime: metav1.Now(),
 				})
 				r.Status().Update(ctx, s3Bucket)
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 			}
 		}
 		controllerutil.RemoveFinalizer(s3Bucket, "s3.odit.services/bucket")
 		err := r.Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to remove finalizer from s3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
 		return ctrl.Result{}, nil
@@ -200,7 +200,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				LastTransitionTime: metav1.Now(),
 			})
 			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 		s3Bucket.Status.Created = true
 	}
@@ -218,7 +218,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	return ctrl.Result{

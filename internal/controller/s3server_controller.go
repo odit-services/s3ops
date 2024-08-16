@@ -66,7 +66,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			},
 		})
 		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
@@ -80,7 +80,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	})
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)
@@ -96,7 +96,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			},
 		})
 		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	minioClient.HealthCheck(1 * time.Second)
@@ -116,7 +116,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		})
 		s3Server.Status.Online = false
 		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{}, fmt.Errorf("minio server is offline")
+		return ctrl.Result{Requeue: false}, fmt.Errorf("minio server is offline")
 	}
 
 	r.logger.Infow("Finished reconciling S3Server", "name", req.Name, "namespace", req.Namespace)
@@ -133,7 +133,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Server status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	return ctrl.Result{
