@@ -6,4 +6,25 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: s3policy-sample
 spec:
-  # TODO(user): Add fields here
+  serverRef: 
+    name: s3server-sample
+    namespace: default
+  policyContent: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "TestS3Policy",
+          "Effect": "Allow",
+          "Action": [
+            "s3:ListBucket",
+            "s3:PutObject",
+            "s3:GetObject"
+          ],
+          "Resource": [
+            "arn:aws:s3:::s3bucket-sample-defaul-ksvzkyb7hb9rvbb414rv2",
+            "arn:aws:s3:::s3bucket-sample-defaul-ksvzkyb7hb9rvbb414rv2/*"
+          ]
+        }
+      ]
+    }
