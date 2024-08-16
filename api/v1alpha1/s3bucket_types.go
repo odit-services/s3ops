@@ -49,14 +49,6 @@ type S3BucketSpec struct {
 	SoftDelete bool `json:"softDelete" yaml:"softDelete"`
 }
 
-type ServerReference struct {
-	// +kubebuilder:validation:Required
-	Name string `json:"name" yaml:"name"`
-
-	// +kubebuilder:validation:Required
-	Namespace string `json:"namespace" yaml:"namespace"`
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 

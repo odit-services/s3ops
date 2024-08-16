@@ -15,3 +15,11 @@ const (
 	ReasonRequestFailed          = "RequestFailed"
 	ReasonCreateFailed           = "CreateFailed"
 )
+
+type ServerReference struct {
+	// +kubebuilder:validation:Required
+	Name string `json:"name" yaml:"name"`
+
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace" yaml:"namespace"`
+}
