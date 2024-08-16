@@ -27,19 +27,19 @@ type S3ClientMockEnv struct {
 }
 
 type S3ClientMockSpy struct {
-	HealthCheckCalled  int
-	IsOnlineCalled     int
-	BucketExistsCalled int
-	MakeBucketCalled   int
-	RemoveBucketCalled int
-	MakeUserCalled     int
-	UserExistsCalled   int
-	RemoveUserCalled   int
-	PolicyExistsCalled int
-	MakePolicyCalled   int
-	UpdatePolicyCalled int
-	RemovePolicyCalled int
-	ApplyPolicyCalled  int
+	HealthCheckCalled       int
+	IsOnlineCalled          int
+	BucketExistsCalled      int
+	MakeBucketCalled        int
+	RemoveBucketCalled      int
+	MakeUserCalled          int
+	UserExistsCalled        int
+	RemoveUserCalled        int
+	PolicyExistsCalled      int
+	MakePolicyCalled        int
+	UpdatePolicyCalled      int
+	RemovePolicyCalled      int
+	ApplyPolicyToUserCalled int
 }
 
 type S3Credentials struct {
@@ -216,7 +216,7 @@ func (c *S3AdminClientMocked) RemovePolicy(ctx context.Context, policyName strin
 }
 
 func (c *S3AdminClientMocked) ApplyPolicyToUser(ctx context.Context, policyName string, userName string) error {
-	c.S3ClientMockSpy.ApplyPolicyCalled++
+	c.S3ClientMockSpy.ApplyPolicyToUserCalled++
 	if !c.CheckServerValid() {
 		return fmt.Errorf("invalid server")
 	}

@@ -39,6 +39,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 	s3MockSpy := mocks.S3ClientMockSpy{}
 	var s3Server *s3oditservicesv1alpha1.S3Server
 	var s3ServerBroken *s3oditservicesv1alpha1.S3Server
+	var s3Policy *s3oditservicesv1alpha1.S3Policy
 	var testReconciler *S3UserReconciler
 
 	BeforeAll(func() {
@@ -128,7 +129,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 		})
 
 		By("creating a test s3 policy")
-		s3Policy := &s3oditservicesv1alpha1.S3Policy{
+		s3Policy = &s3oditservicesv1alpha1.S3Policy{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-s3-policy",
 				Namespace: "default",
@@ -171,6 +172,9 @@ var _ = Describe("S3User Controller", Ordered, func() {
 								Name:      s3Server.Name,
 								Namespace: s3Server.Namespace,
 							},
+							PolicyRefs: []string{
+								s3Policy.Name,
+							},
 						},
 					}
 					Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
@@ -208,6 +212,9 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				})
 				It("Should call the make user function once", func() {
 					Expect(s3MockSpy.MakeUserCalled).To(Equal(1))
+				})
+				It("Should call the assign policy function once for every referenced policy", func() {
+					Expect(s3MockSpy.ApplyPolicyToUserCalled).To(Equal(len(s3User.Spec.PolicyRefs)))
 				})
 			})
 			When("A new valid s3bucket is created with a invalid s3server", func() {
