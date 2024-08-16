@@ -26,7 +26,8 @@ import (
 // S3UserSpec defines the desired state of S3User
 type S3UserSpec struct {
 	// +kubebuilder:validation:Required
-	ServerRef ServerReference `json:"serverRef" yaml:"serverRef"`
+	ServerRef  ServerReference `json:"serverRef" yaml:"serverRef"`
+	PolicyRefs []string        `json:"policyRefs" yaml:"policyRefs"`
 }
 
 // S3UserStatus defines the observed state of S3User
