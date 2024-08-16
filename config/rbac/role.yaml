@@ -40,6 +40,32 @@ rules:
 - apiGroups:
   - s3.odit.services
   resources:
+  - s3policies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3policies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - s3.odit.services
+  resources:
+  - s3policies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - s3.odit.services
+  resources:
   - s3servers
   verbs:
   - create

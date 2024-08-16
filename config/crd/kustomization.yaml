@@ -5,6 +5,7 @@ resources:
 - bases/s3.odit.services_s3servers.yaml
 - bases/s3.odit.services_s3buckets.yaml
 - bases/s3.odit.services_s3users.yaml
+- bases/s3.odit.services_s3policies.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patches:
@@ -17,6 +18,7 @@ patches:
 #- path: patches/cainjection_in_s3servers.yaml
 #- path: patches/cainjection_in_s3buckets.yaml
 #- path: patches/cainjection_in_s3users.yaml
+#- path: patches/cainjection_in_s3policies.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # [WEBHOOK] To enable webhook, uncomment the following section
