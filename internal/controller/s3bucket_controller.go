@@ -145,6 +145,38 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	if s3Bucket.DeletionTimestamp != nil {
+		r.logger.Infow("Deleting s3Bucket", "name", req.Name, "namespace", req.Namespace)
+		if !bucketExists {
+			r.logger.Debugw("Bucket does not exist", "name", req.Name, "namespace", req.Namespace)
+		} else if s3Bucket.Spec.SoftDelete {
+			r.logger.Debugw("Soft delete is enabled", "name", req.Name, "namespace", req.Namespace)
+		} else {
+			r.logger.Debugw("Removing bucket", "name", req.Name, "namespace", req.Namespace)
+			err := s3Client.RemoveBucket(context.Background(), bucketName)
+			if err != nil {
+				r.logger.Errorw("Failed to remove bucket", "name", req.Name, "namespace", req.Namespace, "error", err)
+				s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
+					Type:               s3oditservicesv1alpha1.ConditionFailed,
+					Status:             metav1.ConditionFalse,
+					Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+					Message:            fmt.Sprintf("Failed to remove bucket: %v", err),
+					LastTransitionTime: metav1.Now(),
+				})
+				r.Status().Update(ctx, s3Bucket)
+				return ctrl.Result{}, err
+			}
+		}
+		controllerutil.RemoveFinalizer(s3Bucket, "s3.odit.services/bucket")
+		err := r.Update(ctx, s3Bucket)
+		if err != nil {
+			r.logger.Errorw("Failed to remove finalizer from s3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return ctrl.Result{}, err
+		}
+		r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
+		return ctrl.Result{}, nil
+	}
+
 	if !bucketExists {
 		err = s3Client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{
 			Region:        s3Bucket.Spec.Region,
