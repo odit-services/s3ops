@@ -11,7 +11,8 @@ func DefaultMockEnvs() S3ClientMockEnv {
 				SecretKey: "valid",
 			},
 		},
-		ExistingBuckets: []string{"existing-bucket"},
-		ExistingUsers:   []string{"existing-user"},
+		ExistingBuckets:  []string{"existing-bucket"},
+		ExistingUsers:    []string{"existing-user"},
+		ExistingPolicies: []string{"existing-policy"},
 	}
 }

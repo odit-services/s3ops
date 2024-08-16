@@ -23,6 +23,7 @@ type S3ClientMockEnv struct {
 	ValidCredentials []v1alpha1.S3ServerAuthSpec
 	ExistingBuckets  []string
 	ExistingUsers    []string
+	ExistingPolicies []string
 }
 
 type S3ClientMockSpy struct {
@@ -34,6 +35,10 @@ type S3ClientMockSpy struct {
 	MakeUserCalled     int
 	UserExistsCalled   int
 	RemoveUserCalled   int
+	PolicyExistsCalled int
+	MakePolicyCalled   int
+	UpdatePolicyCalled int
+	RemovePolicyCalled int
 }
 
 type S3Credentials struct {
@@ -172,17 +177,39 @@ func (c *S3AdminClientMocked) RemoveUser(ctx context.Context, accessKey string) 
 }
 
 func (c *S3AdminClientMocked) PolicyExists(ctx context.Context, policyName string) (bool, error) {
-	return false, fmt.Errorf("not implemented")
+	c.S3ClientMockSpy.PolicyExistsCalled++
+	if !c.CheckServerValid() {
+		return false, fmt.Errorf("invalid server")
+	}
+	return slices.Contains(c.S3ClientMockEnv.ExistingPolicies, policyName), nil
 }
 
 func (c *S3AdminClientMocked) MakePolicy(ctx context.Context, policyName string, policy string) error {
-	return fmt.Errorf("not implemented")
+	c.S3ClientMockSpy.MakePolicyCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
+	return nil
 }
 
 func (c *S3AdminClientMocked) UpdatePolicy(ctx context.Context, policyName string, policy string) error {
-	return fmt.Errorf("not implemented")
+	c.S3ClientMockSpy.UpdatePolicyCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
+	if !slices.Contains(c.S3ClientMockEnv.ExistingPolicies, policyName) {
+		return fmt.Errorf("policy does not exist")
+	}
+	return nil
 }
 
 func (c *S3AdminClientMocked) RemovePolicy(ctx context.Context, policyName string) error {
-	return fmt.Errorf("not implemented")
+	c.S3ClientMockSpy.RemovePolicyCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
+	if !slices.Contains(c.S3ClientMockEnv.ExistingPolicies, policyName) {
+		return fmt.Errorf("policy does not exist")
+	}
+	return nil
 }
