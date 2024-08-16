@@ -38,6 +38,7 @@ type S3UserSpec struct {
 type S3UserStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	CrStatus   `json:",inline" yaml:",inline"`
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 	Created    bool               `json:"created,omitempty"`
 	SecretRef  string             `json:"secretRef,omitempty"`

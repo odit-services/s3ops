@@ -136,7 +136,15 @@ spec:
                 type: array
               created:
                 type: boolean
+              lastAction:
+                type: string
+              lastMessage:
+                type: string
+              lastTransitionTime:
+                type: string
               name:
+                type: string
+              status:
                 type: string
             type: object
         type: object

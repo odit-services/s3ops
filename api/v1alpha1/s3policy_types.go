@@ -32,6 +32,7 @@ type S3PolicySpec struct {
 
 // S3PolicyStatus defines the observed state of S3Policy
 type S3PolicyStatus struct {
+	CrStatus   `json:",inline" yaml:",inline"`
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 	Created    bool               `json:"created,omitempty"`
 }

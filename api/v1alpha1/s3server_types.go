@@ -64,8 +64,9 @@ type S3Server struct {
 }
 
 type S3ServerStatus struct {
+	CrStatus   `json:",inline" yaml:",inline"`
+	Conditions []metav1.Condition `json:"conditions,omitempty" yaml:"conditions"`
 	Online     bool               `json:"online" yaml:"online"`
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 }
 
 // +kubebuilder:object:root=true

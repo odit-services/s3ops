@@ -62,6 +62,7 @@ type S3Bucket struct {
 }
 
 type S3BucketStatus struct {
+	CrStatus   `json:",inline" yaml:",inline"`
 	Created    bool               `json:"created,omitempty" yaml:"created,omitempty"`
 	Name       string             `json:"name,omitempty" yaml:"name,omitempty"`
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`

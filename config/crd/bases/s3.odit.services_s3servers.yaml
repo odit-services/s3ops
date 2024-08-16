@@ -135,8 +135,16 @@ spec:
                   - type
                   type: object
                 type: array
+              lastAction:
+                type: string
+              lastMessage:
+                type: string
+              lastTransitionTime:
+                type: string
               online:
                 type: boolean
+              status:
+                type: string
             required:
             - online
             type: object
