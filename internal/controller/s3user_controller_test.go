@@ -271,7 +271,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 					}, secret)).To(Succeed())
 
 					s3MockSpy = mocks.S3ClientMockSpy{}
-					s3MockEnv.ExistingUsers = append(s3MockEnv.ExistingUsers, secret.StringData["accessKey"])
+					s3MockEnv.ExistingUsers = append(s3MockEnv.ExistingUsers, string(secret.Data["accessKey"]))
 
 					result, err = testReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
@@ -333,9 +333,15 @@ var _ = Describe("S3User Controller", Ordered, func() {
 					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
 					})
-					Expect(k8sClient.Delete(ctx, &s3User)).To(Succeed())
-
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+					secret := &corev1.Secret{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      s3User.Status.SecretRef,
+						Namespace: s3User.Namespace,
+					}, secret)).To(Succeed())
+					s3MockEnv.ExistingUsers = append(s3MockEnv.ExistingUsers, string(secret.Data["accessKey"]))
 					s3MockSpy = mocks.S3ClientMockSpy{}
+					Expect(k8sClient.Delete(ctx, &s3User)).To(Succeed())
 					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
 					})
