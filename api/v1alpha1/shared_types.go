@@ -17,10 +17,10 @@ const (
 )
 
 const (
-	StateRunning = "RUNNING"
-	StateFailed  = "FAILED"
-	StatePending = "PENDING"
-	StateSuccess = "SUCCESS"
+	StateReconciling = "RECONCILING"
+	StateFailed      = "FAILED"
+	StatePending     = "PENDING"
+	StateSuccess     = "SUCCESS"
 )
 
 type ServerReference struct {
