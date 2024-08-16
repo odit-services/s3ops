@@ -328,6 +328,8 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
 
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				s3MockEnv.ExistingBuckets = append(s3MockEnv.ExistingBuckets, s3Bucket.Status.Name)
 				Expect(k8sClient.Delete(ctx, &s3Bucket)).To(Succeed())
 				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
@@ -382,6 +384,8 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
 
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				s3MockEnv.ExistingBuckets = append(s3MockEnv.ExistingBuckets, s3Bucket.Status.Name)
 				Expect(k8sClient.Delete(ctx, &s3Bucket)).To(Succeed())
 				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,

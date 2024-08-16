@@ -119,7 +119,10 @@ func (c *S3ClientMocked) MakeBucket(context.Context, string, minio.MakeBucketOpt
 
 func (c *S3ClientMocked) RemoveBucket(context.Context, string) error {
 	c.S3ClientMockSpy.RemoveBucketCalled++
-	return fmt.Errorf("not implemented")
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
+	return nil
 }
 
 type S3AdminClientMocked struct {
