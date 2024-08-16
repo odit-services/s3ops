@@ -181,6 +181,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	if !userExists {
+		r.logger.Debugw("Creating user", "name", req.Name, "namespace", req.Namespace)
 		err = s3AdminClient.MakeUser(ctx, secret.StringData["accessKey"], secret.StringData["secretKey"])
 		if err != nil {
 			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
@@ -194,6 +195,21 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			r.Status().Update(ctx, s3User)
 			return ctrl.Result{}, err
 		}
+		s3User.Status.Created = true
+	}
+
+	r.logger.Infow("Finished reconciling S3User", "name", req.Name, "namespace", req.Namespace)
+	s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+		Type:               s3oditservicesv1alpha1.ConditionReady,
+		Status:             metav1.ConditionTrue,
+		Reason:             metav1.StatusSuccess,
+		Message:            "S3User reconciled",
+		LastTransitionTime: metav1.Now(),
+	})
+	err = r.Status().Update(ctx, s3User)
+	if err != nil {
+		r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{
