@@ -39,6 +39,9 @@ spec:
           spec:
             description: S3BucketSpec defines the desired state of S3Bucket
             properties:
+              generateBucketName:
+                default: true
+                type: boolean
               objectLocking:
                 default: false
                 type: boolean
@@ -129,6 +132,10 @@ spec:
                   - type
                   type: object
                 type: array
+              created:
+                type: boolean
+              name:
+                type: string
             type: object
         type: object
     served: true
