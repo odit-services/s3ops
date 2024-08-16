@@ -67,3 +67,7 @@ func (c *MinioAdminClient) UpdatePolicy(ctx context.Context, policyName string, 
 func (c *MinioAdminClient) RemovePolicy(ctx context.Context, policyName string) error {
 	return c.Client.RemoveCannedPolicy(ctx, policyName)
 }
+
+func (c *MinioAdminClient) ApplyPolicyToUser(ctx context.Context, policyName string, accessKey string) error {
+	return c.Client.SetPolicy(context.Background(), policyName, accessKey, false)
+}

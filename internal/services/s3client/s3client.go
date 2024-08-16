@@ -53,4 +53,5 @@ type S3AdminClient interface {
 	MakePolicy(context.Context, string, string) error
 	UpdatePolicy(context.Context, string, string) error
 	RemovePolicy(context.Context, string) error
+	ApplyPolicyToUser(context.Context, string, string) error
 }
