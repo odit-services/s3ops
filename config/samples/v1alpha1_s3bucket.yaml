@@ -9,4 +9,4 @@ spec:
   serverRef: 
     name: s3server-sample
     namespace: default
-  region: global
+  region: us-east-1
