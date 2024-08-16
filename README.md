@@ -35,7 +35,11 @@ A kubernetes operator to manage S3 resources.
 **Build and push your image to the location specified by `IMG`:**
 
 ```sh
+# Single Arch
 make docker-build docker-push IMG=ghcr.io/odit-services/s3ops:tag
+
+# Multi Arch
+make docker-build-multiarch IMG=ghcr.io/odit-services/s3ops:tag
 ```
 
 **NOTE:** This image ought to be published in the personal registry you specified.

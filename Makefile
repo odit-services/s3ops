@@ -145,7 +145,7 @@ docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
 .PHONY: docker-build-multiarch
-docker-build: ## Build docker image with the manager.
+docker-build-multiarch: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) buildx build --platform=linux/arm64,linux/amd64 --push --tag ${IMG} .
 
 .PHONY: docker-push
