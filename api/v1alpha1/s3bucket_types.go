@@ -35,6 +35,11 @@ type S3BucketSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=false
 	ObjectLocking bool `json:"objectLocking" yaml:"objectLocking"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=true
+	GenerateBucketName bool `json:"generateBucketName" yaml:"generateBucketName"`
 }
 
 type ServerReference struct {
