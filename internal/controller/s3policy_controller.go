@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -115,6 +116,34 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		})
 		r.Status().Update(ctx, s3Policy)
 		return ctrl.Result{}, err
+	}
+
+	if s3Policy.DeletionTimestamp != nil {
+		r.logger.Infow("Deleting S3Policy", "name", req.Name, "namespace", req.Namespace)
+		if !policyExists {
+			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
+		} else {
+			err := s3AdminClient.RemovePolicy(ctx, s3Policy.Name)
+			if err != nil {
+				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				s3Policy.Status.Conditions = append(s3Policy.Status.Conditions, metav1.Condition{
+					Type:               s3oditservicesv1alpha1.ConditionFailed,
+					Status:             metav1.ConditionFalse,
+					Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+					Message:            fmt.Sprintf("Failed to remove user: %v", err),
+					LastTransitionTime: metav1.Now(),
+				})
+				r.Status().Update(ctx, s3Policy)
+				return ctrl.Result{}, err
+			}
+		}
+		controllerutil.RemoveFinalizer(s3Policy, "s3.odit.services/policy")
+		err := r.Update(ctx, s3Policy)
+		if err != nil {
+			r.logger.Errorw("Failed to remove finalizer from S3Policy resource", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
 	}
 
 	if !policyExists {
