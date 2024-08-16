@@ -148,6 +148,51 @@ var _ = Describe("S3User Controller", Ordered, func() {
 						Expect(s3MockSpy.MakeUserCalled).To(Equal(1))
 					})
 				})
+				When("A new valid s3bucket is created with a invalid s3server", func() {
+					var err error
+					var s3User s3oditservicesv1alpha1.S3User
+					BeforeAll(func() {
+						s3MockSpy = mocks.S3ClientMockSpy{}
+						nameSpacedName := types.NamespacedName{
+							Name:      "test-s3-user-invalid",
+							Namespace: "default",
+						}
+						s3User = s3oditservicesv1alpha1.S3User{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      nameSpacedName.Name,
+								Namespace: nameSpacedName.Namespace,
+							},
+							Spec: s3oditservicesv1alpha1.S3UserSpec{
+								ServerRef: s3oditservicesv1alpha1.ServerReference{
+									Name:      s3ServerBroken.Name,
+									Namespace: s3ServerBroken.Namespace,
+								},
+							},
+						}
+						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+
+						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+							NamespacedName: nameSpacedName,
+						})
+						Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+					})
+
+					It("Should return an error", func() {
+						Expect(err).To(HaveOccurred())
+					})
+					It("should set the status condition to type failed", func() {
+						Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+					})
+					It("should not set the created status to true", func() {
+						Expect(s3User.Status.Created).ToNot(BeTrue())
+					})
+					It("should never call the user exists function", func() {
+						Expect(s3MockSpy.UserExistsCalled).To(Equal(0))
+					})
+					It("should never call the make user function", func() {
+						Expect(s3MockSpy.MakeUserCalled).To(Equal(0))
+					})
+				})
 			})
 			Describe("Testing the reconciliation of a existing s3user", func() {
 				When("A valid s3 user get's updated without any changes", func() {
