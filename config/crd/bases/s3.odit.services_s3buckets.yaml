@@ -144,7 +144,7 @@ spec:
                 type: string
               name:
                 type: string
-              status:
+              state:
                 type: string
             type: object
         type: object

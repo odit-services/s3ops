@@ -16,6 +16,13 @@ const (
 	ReasonCreateFailed           = "CreateFailed"
 )
 
+const (
+	StateRunning = "RUNNING"
+	StateFailed  = "FAILED"
+	StatePending = "PENDING"
+	StateSuccess = "SUCCESS"
+)
+
 type ServerReference struct {
 	// +kubebuilder:validation:Required
 	Name string `json:"name" yaml:"name"`
@@ -25,7 +32,7 @@ type ServerReference struct {
 }
 
 type CrStatus struct {
-	Status             string `json:"status,omitempty" yaml:"status,omitempty"`
+	State              string `json:"state,omitempty" yaml:"state,omitempty"`
 	LastAction         string `json:"lastAction,omitempty" yaml:"lastAction,omitempty"`
 	LastMessage        string `json:"lastMessage,omitempty" yaml:"lastMessage,omitempty"`
 	LastTransitionTime string `json:"lastTransitionTime,omitempty" yaml:"lastTransitionTime,omitempty"`
