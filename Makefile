@@ -335,6 +335,8 @@ catalog-push: ## Push a catalog image.
 .PHONY: changelog
 changelog: git-chglog ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(GITCHGLOG) -o CHANGELOG.md
+	git add CHANGELOG.md
+	git commit -m "chore: update changelog"
 
 .PHONY: tag
 tag: ## Tag the current commit with the version number.
