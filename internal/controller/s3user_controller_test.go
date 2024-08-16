@@ -256,6 +256,65 @@ var _ = Describe("S3User Controller", Ordered, func() {
 					})
 				})
 			})
+			Describe("Testing the reconciliation of a deleted s3user", func() {
+				When("A valid s3 user gets deleted", func() {
+					var err error
+					var s3User s3oditservicesv1alpha1.S3User
+					BeforeAll(func() {
+						s3MockSpy = mocks.S3ClientMockSpy{}
+						nameSpacedName := types.NamespacedName{
+							Name:      "test-s3-user-delete",
+							Namespace: "default",
+						}
+						s3User = s3oditservicesv1alpha1.S3User{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      nameSpacedName.Name,
+								Namespace: nameSpacedName.Namespace,
+							},
+							Spec: s3oditservicesv1alpha1.S3UserSpec{
+								ServerRef: s3oditservicesv1alpha1.ServerReference{
+									Name:      s3Server.Name,
+									Namespace: s3Server.Namespace,
+								},
+							},
+						}
+						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+
+						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+							NamespacedName: nameSpacedName,
+						})
+						Expect(k8sClient.Delete(ctx, &s3User)).To(Succeed())
+
+						s3MockSpy = mocks.S3ClientMockSpy{}
+						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+							NamespacedName: nameSpacedName,
+						})
+					})
+
+					It("Should not return an error", func() {
+						Expect(err).ToNot(HaveOccurred())
+					})
+					It("should have deleted the s3user resource", func() {
+						Expect(k8sClient.Get(ctx, types.NamespacedName{
+							Name:      s3User.Name,
+							Namespace: s3User.Namespace,
+						}, &s3User)).ToNot(Succeed())
+					})
+					It("should have deleted the secret", func() {
+						secret := &corev1.Secret{}
+						Expect(k8sClient.Get(ctx, types.NamespacedName{
+							Name:      s3User.Status.SecretRef,
+							Namespace: s3User.Namespace,
+						}, secret)).ToNot(Succeed())
+					})
+					It("Should call the user exists function once", func() {
+						Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
+					})
+					It("Should call the remove user function once", func() {
+						Expect(s3MockSpy.RemoveUserCalled).To(Equal(1))
+					})
+				})
+			})
 		})
 	})
 })
