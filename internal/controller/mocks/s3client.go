@@ -141,11 +141,17 @@ func (c *S3AdminClientMocked) CheckServerValid() bool {
 
 func (c *S3AdminClientMocked) UserExists(ctx context.Context, accessKey string) (bool, error) {
 	c.S3ClientMockSpy.UserExistsCalled++
+	if !c.CheckServerValid() {
+		return false, fmt.Errorf("invalid server")
+	}
 	return slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey), nil
 }
 
 func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string, secretKey string) error {
 	c.S3ClientMockSpy.MakeUserCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
 	userExists := slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey)
 	if userExists {
 		return fmt.Errorf("user already exists")
@@ -155,6 +161,9 @@ func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string, se
 
 func (c *S3AdminClientMocked) RemoveUser(ctx context.Context, accessKey string) error {
 	c.S3ClientMockSpy.RemoveUserCalled++
+	if !c.CheckServerValid() {
+		return fmt.Errorf("invalid server")
+	}
 	userExists := slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey)
 	if !userExists {
 		return fmt.Errorf("user does not exist")
