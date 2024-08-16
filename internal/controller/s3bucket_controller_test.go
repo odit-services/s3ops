@@ -151,8 +151,8 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3Bucket.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
 				})
 				It("Should call the bucket exists function once", func() {
 					Expect(s3MockSpy.BucketExistsCalled).To(Equal(1))
@@ -245,8 +245,8 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should return an error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-				It("should set the status condition to type failed", func() {
-					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				It("should set the status state to failed", func() {
+					Expect(s3Bucket.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
 				})
 				It("Should not set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
@@ -287,8 +287,8 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should return an error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-				It("should set the status condition to type failed", func() {
-					Expect(s3Bucket.Status.Conditions[len(s3Bucket.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				It("should set the status state to failed", func() {
+					Expect(s3Bucket.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
 				})
 				It("Should not set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
