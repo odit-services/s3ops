@@ -114,6 +114,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Time: time.Now(),
 			},
 		})
+		s3Server.Status.Online = false
 		r.Status().Update(ctx, s3Server)
 		return ctrl.Result{}, fmt.Errorf("minio server is offline")
 	}
@@ -128,6 +129,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			Time: time.Now(),
 		},
 	})
+	s3Server.Status.Online = true
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Server status", "name", req.Name, "namespace", req.Namespace, "error", err)
