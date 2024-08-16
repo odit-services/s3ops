@@ -12,5 +12,6 @@ func DefaultMockEnvs() S3ClientMockEnv {
 			},
 		},
 		ExistingBuckets: []string{"existing-bucket"},
+		ExistingUsers:   []string{"existing-user"},
 	}
 }
