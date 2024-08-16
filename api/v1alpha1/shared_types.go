@@ -23,6 +23,13 @@ const (
 	StateSuccess     = "SUCCESS"
 )
 
+const (
+	ActionUnknown = "UNKNOWN"
+	ActionCreate  = "CREATE"
+	ActionUpdate  = "UPDATE"
+	ActionDelete  = "DELETE"
+)
+
 type ServerReference struct {
 	// +kubebuilder:validation:Required
 	Name string `json:"name" yaml:"name"`
