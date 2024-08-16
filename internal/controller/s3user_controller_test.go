@@ -58,7 +58,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 		By("creating a test s3 server")
 		s3Server = &s3oditservicesv1alpha1.S3Server{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-s3-server",
+				Name:      "test-s3-server-user",
 				Namespace: "default",
 			},
 			Spec: s3oditservicesv1alpha1.S3ServerSpec{
@@ -73,7 +73,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 		By("creating a invalid test s3 server")
 		s3ServerBroken = &s3oditservicesv1alpha1.S3Server{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-s3-server-invalid",
+				Name:      "test-s3-server-invalid-user",
 				Namespace: "default",
 			},
 			Spec: s3oditservicesv1alpha1.S3ServerSpec{
@@ -87,232 +87,232 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
-		Describe("Testing the reconcoile function", func() {
-			Describe("Testing the reconciliation of a new s3user", func() {
-				When("A new valid s3bucket is created with a valid s3server", func() {
-					var err error
-					var result ctrl.Result
-					var s3User s3oditservicesv1alpha1.S3User
-					BeforeAll(func() {
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						nameSpacedName := types.NamespacedName{
-							Name:      "test-s3-user-nonexistent",
-							Namespace: "default",
-						}
-						s3User = s3oditservicesv1alpha1.S3User{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      nameSpacedName.Name,
-								Namespace: nameSpacedName.Namespace,
+	})
+	Describe("Testing the reconcoile function", func() {
+		Describe("Testing the reconciliation of a new s3user", func() {
+			When("A new valid s3bucket is created with a valid s3server", func() {
+				var err error
+				var result ctrl.Result
+				var s3User s3oditservicesv1alpha1.S3User
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-user-nonexistent",
+						Namespace: "default",
+					}
+					s3User = s3oditservicesv1alpha1.S3User{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3UserSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3Server.Name,
+								Namespace: s3Server.Namespace,
 							},
-							Spec: s3oditservicesv1alpha1.S3UserSpec{
-								ServerRef: s3oditservicesv1alpha1.ServerReference{
-									Name:      s3Server.Name,
-									Namespace: s3Server.Namespace,
-								},
-							},
-						}
-						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
 
-						result, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
-						Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+					result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
 					})
-
-					It("Should not return an error", func() {
-						Expect(err).ToNot(HaveOccurred())
-					})
-					It("should return a result with requeue set higher than 0", func() {
-						Expect(result.RequeueAfter).To(BeNumerically(">", 0))
-					})
-					It("should set the status condition to type ready", func() {
-						Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
-					})
-					It("Should set the status created to true", func() {
-						Expect(s3User.Status.Created).To(BeTrue())
-					})
-					It("Should set the status secret ref to a valid secret", func() {
-						Expect(s3User.Status.SecretRef).ToNot(BeEmpty())
-					})
-					It("Should create a secret in the same namespace as the user", func() {
-						secret := &corev1.Secret{}
-						Expect(k8sClient.Get(ctx, types.NamespacedName{
-							Name:      s3User.Status.SecretRef,
-							Namespace: s3User.Namespace,
-						}, secret)).To(Succeed())
-					})
-					It("Should call the user exists function once", func() {
-						Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
-					})
-					It("Should call the make user function once", func() {
-						Expect(s3MockSpy.MakeUserCalled).To(Equal(1))
-					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
 				})
-				When("A new valid s3bucket is created with a invalid s3server", func() {
-					var err error
-					var s3User s3oditservicesv1alpha1.S3User
-					BeforeAll(func() {
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						nameSpacedName := types.NamespacedName{
-							Name:      "test-s3-user-invalid",
-							Namespace: "default",
-						}
-						s3User = s3oditservicesv1alpha1.S3User{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      nameSpacedName.Name,
-								Namespace: nameSpacedName.Namespace,
-							},
-							Spec: s3oditservicesv1alpha1.S3UserSpec{
-								ServerRef: s3oditservicesv1alpha1.ServerReference{
-									Name:      s3ServerBroken.Name,
-									Namespace: s3ServerBroken.Namespace,
-								},
-							},
-						}
-						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
 
-						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
-						Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
-					})
-
-					It("Should return an error", func() {
-						Expect(err).To(HaveOccurred())
-					})
-					It("should set the status condition to type failed", func() {
-						Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
-					})
-					It("should not set the created status to true", func() {
-						Expect(s3User.Status.Created).ToNot(BeTrue())
-					})
-					It("should never call the user exists function", func() {
-						Expect(s3MockSpy.UserExistsCalled).To(Equal(0))
-					})
-					It("should never call the make user function", func() {
-						Expect(s3MockSpy.MakeUserCalled).To(Equal(0))
-					})
+				It("Should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status condition to type ready", func() {
+					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				})
+				It("Should set the status created to true", func() {
+					Expect(s3User.Status.Created).To(BeTrue())
+				})
+				It("Should set the status secret ref to a valid secret", func() {
+					Expect(s3User.Status.SecretRef).ToNot(BeEmpty())
+				})
+				It("Should create a secret in the same namespace as the user", func() {
+					secret := &corev1.Secret{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      s3User.Status.SecretRef,
+						Namespace: s3User.Namespace,
+					}, secret)).To(Succeed())
+				})
+				It("Should call the user exists function once", func() {
+					Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
+				})
+				It("Should call the make user function once", func() {
+					Expect(s3MockSpy.MakeUserCalled).To(Equal(1))
 				})
 			})
-			Describe("Testing the reconciliation of a existing s3user", func() {
-				When("A valid s3 user get's updated without any changes", func() {
-					var err error
-					var result ctrl.Result
-					var s3User s3oditservicesv1alpha1.S3User
-					BeforeAll(func() {
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						nameSpacedName := types.NamespacedName{
-							Name:      "test-s3-user-update-nochanges",
-							Namespace: "default",
-						}
-						s3User = s3oditservicesv1alpha1.S3User{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      nameSpacedName.Name,
-								Namespace: nameSpacedName.Namespace,
+			When("A new valid s3bucket is created with a invalid s3server", func() {
+				var err error
+				var s3User s3oditservicesv1alpha1.S3User
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-user-invalid",
+						Namespace: "default",
+					}
+					s3User = s3oditservicesv1alpha1.S3User{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3UserSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3ServerBroken.Name,
+								Namespace: s3ServerBroken.Namespace,
 							},
-							Spec: s3oditservicesv1alpha1.S3UserSpec{
-								ServerRef: s3oditservicesv1alpha1.ServerReference{
-									Name:      s3Server.Name,
-									Namespace: s3Server.Namespace,
-								},
-							},
-						}
-						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
 
-						result, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						result, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
-						Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
 					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+				})
 
-					It("Should not return an error", func() {
-						Expect(err).ToNot(HaveOccurred())
-					})
-					It("should return a result with requeue set higher than 0", func() {
-						Expect(result.RequeueAfter).To(BeNumerically(">", 0))
-					})
-					It("should set the status condition to type ready", func() {
-						Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
-					})
-					It("Should set the status secret ref to a valid secret", func() {
-						Expect(s3User.Status.SecretRef).ToNot(BeEmpty())
-					})
-					It("Should create a secret in the same namespace as the user", func() {
-						secret := &corev1.Secret{}
-						Expect(k8sClient.Get(ctx, types.NamespacedName{
-							Name:      s3User.Status.SecretRef,
-							Namespace: s3User.Namespace,
-						}, secret)).To(Succeed())
-					})
-					It("Should call the user exists function once", func() {
-						Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
-					})
-					It("Should never call the make user function", func() {
-						Expect(s3MockSpy.MakeUserCalled).To(Equal(0))
-					})
+				It("Should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status condition to type failed", func() {
+					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				})
+				It("should not set the created status to true", func() {
+					Expect(s3User.Status.Created).ToNot(BeTrue())
+				})
+				It("should never call the user exists function", func() {
+					Expect(s3MockSpy.UserExistsCalled).To(Equal(0))
+				})
+				It("should never call the make user function", func() {
+					Expect(s3MockSpy.MakeUserCalled).To(Equal(0))
 				})
 			})
-			Describe("Testing the reconciliation of a deleted s3user", func() {
-				When("A valid s3 user gets deleted", func() {
-					var err error
-					var s3User s3oditservicesv1alpha1.S3User
-					BeforeAll(func() {
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						nameSpacedName := types.NamespacedName{
-							Name:      "test-s3-user-delete",
-							Namespace: "default",
-						}
-						s3User = s3oditservicesv1alpha1.S3User{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      nameSpacedName.Name,
-								Namespace: nameSpacedName.Namespace,
+		})
+		Describe("Testing the reconciliation of a existing s3user", func() {
+			When("A valid s3 user get's updated without any changes", func() {
+				var err error
+				var result ctrl.Result
+				var s3User s3oditservicesv1alpha1.S3User
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-user-update-nochanges",
+						Namespace: "default",
+					}
+					s3User = s3oditservicesv1alpha1.S3User{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3UserSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3Server.Name,
+								Namespace: s3Server.Namespace,
 							},
-							Spec: s3oditservicesv1alpha1.S3UserSpec{
-								ServerRef: s3oditservicesv1alpha1.ServerReference{
-									Name:      s3Server.Name,
-									Namespace: s3Server.Namespace,
-								},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+
+					result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+				})
+
+				It("Should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status condition to type ready", func() {
+					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				})
+				It("Should set the status secret ref to a valid secret", func() {
+					Expect(s3User.Status.SecretRef).ToNot(BeEmpty())
+				})
+				It("Should create a secret in the same namespace as the user", func() {
+					secret := &corev1.Secret{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      s3User.Status.SecretRef,
+						Namespace: s3User.Namespace,
+					}, secret)).To(Succeed())
+				})
+				It("Should call the user exists function once", func() {
+					Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
+				})
+				It("Should never call the make user function", func() {
+					Expect(s3MockSpy.MakeUserCalled).To(Equal(0))
+				})
+			})
+		})
+		Describe("Testing the reconciliation of a deleted s3user", func() {
+			When("A valid s3 user gets deleted", func() {
+				var err error
+				var s3User s3oditservicesv1alpha1.S3User
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-user-delete",
+						Namespace: "default",
+					}
+					s3User = s3oditservicesv1alpha1.S3User{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3UserSpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3Server.Name,
+								Namespace: s3Server.Namespace,
 							},
-						}
-						Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3User)).To(Succeed())
 
-						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
-						Expect(k8sClient.Delete(ctx, &s3User)).To(Succeed())
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Delete(ctx, &s3User)).To(Succeed())
 
-						s3MockSpy = mocks.S3ClientMockSpy{}
-						_, err = testReconciler.Reconcile(ctx, ctrl.Request{
-							NamespacedName: nameSpacedName,
-						})
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
 					})
+				})
 
-					It("Should not return an error", func() {
-						Expect(err).ToNot(HaveOccurred())
-					})
-					It("should have deleted the s3user resource", func() {
-						Expect(k8sClient.Get(ctx, types.NamespacedName{
-							Name:      s3User.Name,
-							Namespace: s3User.Namespace,
-						}, &s3User)).ToNot(Succeed())
-					})
-					It("should have deleted the secret", func() {
-						secret := &corev1.Secret{}
-						Expect(k8sClient.Get(ctx, types.NamespacedName{
-							Name:      s3User.Status.SecretRef,
-							Namespace: s3User.Namespace,
-						}, secret)).ToNot(Succeed())
-					})
-					It("Should call the user exists function once", func() {
-						Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
-					})
-					It("Should call the remove user function once", func() {
-						Expect(s3MockSpy.RemoveUserCalled).To(Equal(1))
-					})
+				It("Should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should have deleted the s3user resource", func() {
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      s3User.Name,
+						Namespace: s3User.Namespace,
+					}, &s3User)).ToNot(Succeed())
+				})
+				It("should have deleted the secret", func() {
+					secret := &corev1.Secret{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      s3User.Status.SecretRef,
+						Namespace: s3User.Namespace,
+					}, secret)).ToNot(Succeed())
+				})
+				It("Should call the user exists function once", func() {
+					Expect(s3MockSpy.UserExistsCalled).To(Equal(1))
+				})
+				It("Should call the remove user function once", func() {
+					Expect(s3MockSpy.RemoveUserCalled).To(Equal(1))
 				})
 			})
 		})
