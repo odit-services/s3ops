@@ -341,3 +341,7 @@ changelog: git-chglog ## Generate code containing DeepCopy, DeepCopyInto, and De
 .PHONY: tag
 tag: ## Tag the current commit with the version number.
 	git tag -a v$(VERSION) -m "Release v$(VERSION)"
+
+.PHONY: release
+release: changelog tag ## Generate a changelog and tag the current commit with the version number.
+	make docker-build-multiarch IMG=$(IMG)
