@@ -34,7 +34,7 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/minio/minio-go/v7"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/s3client"
+	s3client "github.com/odit-services/s3ops/internal/services/s3client"
 )
 
 // S3BucketReconciler reconciles a S3Bucket object

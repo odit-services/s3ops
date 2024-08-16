@@ -32,7 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/controller/s3client"
+	s3client "github.com/odit-services/s3ops/internal/services/s3client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
