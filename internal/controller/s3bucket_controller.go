@@ -45,6 +45,23 @@ type S3BucketReconciler struct {
 	S3ClientFactory s3client.S3ClientFactory
 }
 
+func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Bucket, err error) (ctrl.Result, error) {
+	r.logger.Errorw("Failed to reconcile S3Bucket", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
+	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:       s3oditservicesv1alpha1.StateFailed,
+			LastAction:  s3Bucket.Status.LastAction,
+			LastMessage: fmt.Sprintf("Failed to reconcile S3Bucket: %v", err),
+		},
+	}
+	err = r.Status().Update(context.Background(), s3Bucket)
+	if err != nil {
+		r.logger.Errorw("Failed to update S3Bucket status", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+	}
+	return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+}
+
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets/finalizers,verbs=update
@@ -77,30 +94,14 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		err := r.Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to add finalizer to S3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-				CrStatus: s3oditservicesv1alpha1.CrStatus{
-					State:       s3oditservicesv1alpha1.StateFailed,
-					LastAction:  s3Bucket.Status.LastAction,
-					LastMessage: fmt.Sprintf("Failed to add finalizer: %v", err),
-				},
-			}
-			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+			return r.HandleError(s3Bucket, err)
 		}
 	}
 
 	s3Client, _, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-			CrStatus: s3oditservicesv1alpha1.CrStatus{
-				State:       s3oditservicesv1alpha1.StateFailed,
-				LastAction:  s3Bucket.Status.LastAction,
-				LastMessage: fmt.Sprintf("Failed to get S3Client from S3Server: %v", err),
-			},
-		}
-		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Bucket, err)
 	}
 
 	var bucketName string
@@ -111,15 +112,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		nanoID, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 21)
 		if err != nil {
 			r.logger.Errorw("Failed to generate bucket name", "name", s3Bucket.Name, "error", err)
-			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-				CrStatus: s3oditservicesv1alpha1.CrStatus{
-					State:       s3oditservicesv1alpha1.StateFailed,
-					LastAction:  s3Bucket.Status.LastAction,
-					LastMessage: fmt.Sprintf("Failed to generate bucket name: %v", err),
-				},
-			}
-			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+			return r.HandleError(s3Bucket, err)
 		}
 		bucketPrefix := fmt.Sprintf("%s-%s", s3Bucket.Name, s3Bucket.Namespace)
 		var truncateAt int
@@ -138,15 +131,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	bucketExists, err := s3Client.BucketExists(context.Background(), bucketName)
 	if err != nil {
 		r.logger.Errorw("Failed to check if bucket exists", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
-		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-			CrStatus: s3oditservicesv1alpha1.CrStatus{
-				State:       s3oditservicesv1alpha1.StateFailed,
-				LastAction:  s3Bucket.Status.LastAction,
-				LastMessage: fmt.Sprintf("Failed to check if bucket exists: %v", err),
-			},
-		}
-		r.Status().Update(ctx, s3Bucket)
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Bucket, err)
 	}
 
 	if s3Bucket.DeletionTimestamp != nil {
@@ -172,15 +157,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			err := s3Client.RemoveBucket(context.Background(), bucketName)
 			if err != nil {
 				r.logger.Errorw("Failed to remove bucket", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-					CrStatus: s3oditservicesv1alpha1.CrStatus{
-						State:       s3oditservicesv1alpha1.StateFailed,
-						LastAction:  s3Bucket.Status.LastAction,
-						LastMessage: fmt.Sprintf("Failed to remove bucket: %v", err),
-					},
-				}
-				r.Status().Update(ctx, s3Bucket)
-				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+				return r.HandleError(s3Bucket, err)
 			}
 		}
 		controllerutil.RemoveFinalizer(s3Bucket, "s3.odit.services/bucket")
@@ -194,21 +171,14 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !bucketExists {
+		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionCreate
 		err = s3Client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{
 			Region:        s3Bucket.Spec.Region,
 			ObjectLocking: s3Bucket.Spec.ObjectLocking,
 		})
 		if err != nil {
 			r.logger.Errorw("Failed to create bucket", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
-			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-				CrStatus: s3oditservicesv1alpha1.CrStatus{
-					State:       s3oditservicesv1alpha1.StateFailed,
-					LastAction:  s3oditservicesv1alpha1.ActionCreate,
-					LastMessage: fmt.Sprintf("Failed to create bucket: %v", err),
-				},
-			}
-			r.Status().Update(ctx, s3Bucket)
-			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+			return r.HandleError(s3Bucket, err)
 		}
 		s3Bucket.Status.Created = true
 	}
