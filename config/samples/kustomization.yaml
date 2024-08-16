@@ -4,4 +4,6 @@ resources:
 - _v1alpha1_s3server.yaml
 - v1alpha1_s3bucket.yaml
 - _v1alpha1_s3bucket.yaml
+- v1alpha1_s3user.yaml
+- _v1alpha1_s3user.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

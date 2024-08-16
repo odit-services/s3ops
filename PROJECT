@@ -27,4 +27,12 @@ resources:
   kind: S3Bucket
   path: github.com/odit-services/s3ops/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: s3.odit.services
+  kind: S3User
+  path: github.com/odit-services/s3ops/api/v1alpha1
+  version: v1alpha1
 version: "3"
