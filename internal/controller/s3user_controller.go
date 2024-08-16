@@ -109,64 +109,55 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var secret *corev1.Secret
 	if s3User.Status.SecretRef == "" {
-		if s3User.Spec.ExistingSecretRef == "" {
-			nanoID, err := gonanoid.New(32)
-			if err != nil {
-				r.logger.Errorw("Failed to generate nanoID", "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
-					Type:               s3oditservicesv1alpha1.ConditionFailed,
-					Status:             metav1.ConditionFalse,
-					Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
-					Message:            "Failed to generate nanoID",
-					LastTransitionTime: metav1.Now(),
-				})
-				r.Status().Update(ctx, s3User)
-				return ctrl.Result{}, err
-			}
+		nanoID, err := gonanoid.New(32)
+		if err != nil {
+			r.logger.Errorw("Failed to generate nanoID", "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
+				Message:            "Failed to generate nanoID",
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
+		}
 
-			secretKey, err := gopassword.Generate(64, 20, 0, true, false)
-			if err != nil {
-				r.logger.Errorw("Failed to generate secretKey", "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
-					Type:               s3oditservicesv1alpha1.ConditionFailed,
-					Status:             metav1.ConditionFalse,
-					Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
-					Message:            "Failed to generate secretKey",
-					LastTransitionTime: metav1.Now(),
-				})
-				r.Status().Update(ctx, s3User)
-				return ctrl.Result{}, err
-			}
+		secretKey, err := gopassword.Generate(64, 20, 0, true, false)
+		if err != nil {
+			r.logger.Errorw("Failed to generate secretKey", "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonCreateFailed,
+				Message:            "Failed to generate secretKey",
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
+		}
 
-			secret = &corev1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("%s-s3Creds", s3User.Name),
-					Namespace: s3User.Namespace,
-				},
-				StringData: map[string]string{
-					"accessKey": fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID),
-					"secretKey": secretKey,
-				},
-			}
-			condition, err = createSecret(ctx, r.Client, secret)
-			if err != nil {
-				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
-				r.Status().Update(ctx, s3User)
-				return ctrl.Result{}, err
-			}
-		} else {
-			secret, condition, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Spec.ExistingSecretRef)
-			if err != nil {
-				r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
-				r.Status().Update(ctx, s3User)
-				return ctrl.Result{}, err
-			}
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-s3Creds", s3User.Name),
+				Namespace: s3User.Namespace,
+			},
+			StringData: map[string]string{
+				"accessKey": fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID),
+				"secretKey": secretKey,
+			},
+		}
+		condition, err = createSecret(ctx, r.Client, secret)
+		if err != nil {
+			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
 		}
 		s3User.Status.SecretRef = secret.Name
+		r.Status().Update(ctx, s3User)
 	} else {
-		secret, condition, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Spec.ExistingSecretRef)
+		secret, condition, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
 		if err != nil {
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
@@ -175,7 +166,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	userExists, err := s3AdminClient.UserExists(secret.StringData["accessKey"])
+	userExists, err := s3AdminClient.UserExists(ctx, secret.StringData["accessKey"])
 	if err != nil {
 		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{

@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getSecret(ctx context.Context, r client.Client, namespace string, name string) (*corev1.Secret, metav1.Contdition, error) {
+func getSecret(ctx context.Context, r client.Client, namespace string, name string) (*corev1.Secret, metav1.Condition, error) {
 	secret := &corev1.Secret{}
 	err := r.Get(ctx, client.ObjectKey{
 		Namespace: namespace,
