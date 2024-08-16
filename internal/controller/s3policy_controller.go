@@ -29,6 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
@@ -218,5 +219,6 @@ func (r *S3PolicyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3Policy{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{})).
 		Complete(r)
 }

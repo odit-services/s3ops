@@ -30,6 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/minio/minio-go/v7"
@@ -248,5 +249,6 @@ func (r *S3BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3Bucket{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{})).
 		Complete(r)
 }

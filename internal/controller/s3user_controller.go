@@ -29,6 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
@@ -313,5 +314,6 @@ func (r *S3UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&s3oditservicesv1alpha1.S3User{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{})).
 		Complete(r)
 }
