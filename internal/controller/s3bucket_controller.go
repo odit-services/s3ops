@@ -25,7 +25,6 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,24 +57,15 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err := r.Get(ctx, req.NamespacedName, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-			Type:               s3oditservicesv1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             s3oditservicesv1alpha1.ReasonNotFound,
-			Message:            "S3Bucket resource not found",
-			LastTransitionTime: metav1.Now(),
-		})
-		r.Status().Update(ctx, s3Bucket)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
-	s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-		Type:               s3oditservicesv1alpha1.ConditionReconciling,
-		Status:             metav1.ConditionUnknown,
-		Reason:             s3oditservicesv1alpha1.ConditionReconciling,
-		Message:            "Reconciling S3Bucket resource",
-		LastTransitionTime: metav1.Now(),
-	})
+	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:      s3oditservicesv1alpha1.StatePending,
+			LastAction: s3oditservicesv1alpha1.ActionUnknown,
+		},
+	}
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Bucket resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
@@ -87,22 +77,28 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		err := r.Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to add finalizer to S3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-			s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-				Type:               s3oditservicesv1alpha1.ConditionFailed,
-				Status:             metav1.ConditionFalse,
-				Reason:             s3oditservicesv1alpha1.ReasonFinalizerFailedToApply,
-				Message:            "Failed to add finalizer to S3Bucket resource",
-				LastTransitionTime: metav1.Now(),
-			})
+			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+				CrStatus: s3oditservicesv1alpha1.CrStatus{
+					State:       s3oditservicesv1alpha1.StateFailed,
+					LastAction:  s3Bucket.Status.LastAction,
+					LastMessage: fmt.Sprintf("Failed to add finalizer: %v", err),
+				},
+			}
 			r.Status().Update(ctx, s3Bucket)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 	}
 
-	s3Client, condition, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	s3Client, _, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, condition)
+		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+			CrStatus: s3oditservicesv1alpha1.CrStatus{
+				State:       s3oditservicesv1alpha1.StateFailed,
+				LastAction:  s3Bucket.Status.LastAction,
+				LastMessage: fmt.Sprintf("Failed to get S3Client from S3Server: %v", err),
+			},
+		}
 		r.Status().Update(ctx, s3Bucket)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
@@ -115,13 +111,13 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		nanoID, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 21)
 		if err != nil {
 			r.logger.Errorw("Failed to generate bucket name", "name", s3Bucket.Name, "error", err)
-			s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-				Type:               s3oditservicesv1alpha1.ConditionFailed,
-				Status:             metav1.ConditionFalse,
-				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
-				Message:            fmt.Sprintf("Failed to generate bucket name: %v", err),
-				LastTransitionTime: metav1.Now(),
-			})
+			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+				CrStatus: s3oditservicesv1alpha1.CrStatus{
+					State:       s3oditservicesv1alpha1.StateFailed,
+					LastAction:  s3Bucket.Status.LastAction,
+					LastMessage: fmt.Sprintf("Failed to generate bucket name: %v", err),
+				},
+			}
 			r.Status().Update(ctx, s3Bucket)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
@@ -142,19 +138,31 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	bucketExists, err := s3Client.BucketExists(context.Background(), bucketName)
 	if err != nil {
 		r.logger.Errorw("Failed to check if bucket exists", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
-		s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-			Type:               s3oditservicesv1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
-			Message:            fmt.Sprintf("Failed to check if bucket exists: %v", err),
-			LastTransitionTime: metav1.Now(),
-		})
+		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+			CrStatus: s3oditservicesv1alpha1.CrStatus{
+				State:       s3oditservicesv1alpha1.StateFailed,
+				LastAction:  s3Bucket.Status.LastAction,
+				LastMessage: fmt.Sprintf("Failed to check if bucket exists: %v", err),
+			},
+		}
 		r.Status().Update(ctx, s3Bucket)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 
 	if s3Bucket.DeletionTimestamp != nil {
 		r.logger.Infow("Deleting s3Bucket", "name", req.Name, "namespace", req.Namespace)
+		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+			CrStatus: s3oditservicesv1alpha1.CrStatus{
+				State:      s3oditservicesv1alpha1.StateReconciling,
+				LastAction: s3oditservicesv1alpha1.ActionDelete,
+			},
+		}
+		err = r.Status().Update(ctx, s3Bucket)
+		if err != nil {
+			r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		}
+
 		if !bucketExists {
 			r.logger.Debugw("Bucket does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else if s3Bucket.Spec.SoftDelete {
@@ -164,13 +172,13 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			err := s3Client.RemoveBucket(context.Background(), bucketName)
 			if err != nil {
 				r.logger.Errorw("Failed to remove bucket", "name", req.Name, "namespace", req.Namespace, "error", err)
-				s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-					Type:               s3oditservicesv1alpha1.ConditionFailed,
-					Status:             metav1.ConditionFalse,
-					Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
-					Message:            fmt.Sprintf("Failed to remove bucket: %v", err),
-					LastTransitionTime: metav1.Now(),
-				})
+				s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+					CrStatus: s3oditservicesv1alpha1.CrStatus{
+						State:       s3oditservicesv1alpha1.StateFailed,
+						LastAction:  s3Bucket.Status.LastAction,
+						LastMessage: fmt.Sprintf("Failed to remove bucket: %v", err),
+					},
+				}
 				r.Status().Update(ctx, s3Bucket)
 				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 			}
@@ -192,13 +200,13 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		})
 		if err != nil {
 			r.logger.Errorw("Failed to create bucket", "name", s3Bucket.Name, "bucketName", bucketName, "error", err)
-			s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-				Type:               s3oditservicesv1alpha1.ConditionFailed,
-				Status:             metav1.ConditionFalse,
-				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
-				Message:            fmt.Sprintf("Failed to create bucket: %v", err),
-				LastTransitionTime: metav1.Now(),
-			})
+			s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+				CrStatus: s3oditservicesv1alpha1.CrStatus{
+					State:       s3oditservicesv1alpha1.StateFailed,
+					LastAction:  s3oditservicesv1alpha1.ActionCreate,
+					LastMessage: fmt.Sprintf("Failed to create bucket: %v", err),
+				},
+			}
 			r.Status().Update(ctx, s3Bucket)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
@@ -206,15 +214,15 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
-	s3Bucket.Status.Conditions = append(s3Bucket.Status.Conditions, metav1.Condition{
-		Type:    s3oditservicesv1alpha1.ConditionReady,
-		Status:  metav1.ConditionTrue,
-		Reason:  metav1.StatusSuccess,
-		Message: "s3Bucket is ready",
-		LastTransitionTime: metav1.Time{
-			Time: time.Now(),
+	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:       s3oditservicesv1alpha1.StateSuccess,
+			LastAction:  s3Bucket.Status.LastAction,
+			LastMessage: "S3Bucket is ready",
 		},
-	})
+		Created: true,
+		Name:    bucketName,
+	}
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
