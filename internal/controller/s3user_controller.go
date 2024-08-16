@@ -110,7 +110,6 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	var secret *corev1.Secret
 	if s3User.Status.SecretRef == "" {
 		if s3User.Spec.ExistingSecretRef == "" {
-			// Create the secret
 			nanoID, err := gonanoid.New(32)
 			if err != nil {
 				r.logger.Errorw("Failed to generate nanoID", "error", err)
@@ -171,6 +170,36 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if err != nil {
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, condition)
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{}, err
+		}
+	}
+
+	userExists, err := s3AdminClient.UserExists(secret.StringData["accessKey"])
+	if err != nil {
+		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
+		s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+			Type:               s3oditservicesv1alpha1.ConditionFailed,
+			Status:             metav1.ConditionFalse,
+			Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+			Message:            fmt.Sprintf("Failed to check if user exists: %v", err),
+			LastTransitionTime: metav1.Now(),
+		})
+		r.Status().Update(ctx, s3User)
+		return ctrl.Result{}, err
+	}
+
+	if !userExists {
+		err = s3AdminClient.MakeUser(ctx, secret.StringData["accessKey"], secret.StringData["secretKey"])
+		if err != nil {
+			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Failed to create user: %v", err),
+				LastTransitionTime: metav1.Now(),
+			})
 			r.Status().Update(ctx, s3User)
 			return ctrl.Result{}, err
 		}
