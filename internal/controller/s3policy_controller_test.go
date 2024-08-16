@@ -178,6 +178,106 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 				It("should set the status condition to type ready", func() {
 					Expect(s3Policy.Status.Conditions[len(s3Policy.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
 				})
+				It("should call the s3client exists function once", func() {
+					Expect(s3MockSpy.PolicyExistsCalled).To(Equal(1))
+				})
+				It("should call the s3client make function once", func() {
+					Expect(s3MockSpy.MakePolicyCalled).To(Equal(1))
+				})
+			})
+		})
+		Describe("Testing the reconciliation of a existing s3policy", func() {
+			When("A valid s3policy is updated with new policy content with a valid s3server", func() {
+				var err error
+				var result ctrl.Result
+				var s3Policy s3oditservicesv1alpha1.S3Policy
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3-policy-update",
+						Namespace: "default",
+					}
+					s3Policy = s3oditservicesv1alpha1.S3Policy{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3PolicySpec{
+							ServerRef: s3oditservicesv1alpha1.ServerReference{
+								Name:      s3Server.Name,
+								Namespace: s3Server.Namespace,
+							},
+							PolicyContent: fmt.Sprintf(`
+								{
+									"Version": "2012-10-17",
+									"Statement": [
+										{
+											"Sid": "TestS3Policy",
+											"Effect": "Allow",
+											"Action": [
+												"s3:ListBucket",
+												"s3:PutObject",
+												"s3:GetObject"
+											],
+											"Resource": [
+												"arn:aws:s3:::%s",
+												"arn:aws:s3:::%s/*"
+											]
+										}
+									]
+								}
+							`, s3MockEnv.ExistingBuckets[0], s3MockEnv.ExistingBuckets[0]),
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Policy)).To(Succeed())
+					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
+
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
+					s3Policy.Spec.PolicyContent = fmt.Sprintf(`
+						{
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Sid": "TestS3Policy",
+									"Effect": "Allow",
+									"Action": [
+										"s3:ListBucket",
+										"s3:PutObject",
+										"s3:GetObject"
+									],
+									"Resource": [
+										"arn:aws:s3:::%s",
+										"arn:aws:s3:::%s/*"
+									]
+								}
+							]
+						}
+					`, s3MockEnv.ExistingBuckets[0], s3MockEnv.ExistingBuckets[0])
+					Expect(k8sClient.Update(ctx, &s3Policy)).To(Succeed())
+					result, err = testReconciler.Reconcile(ctx, ctrl.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
+				})
+				It("Should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status condition to type ready", func() {
+					Expect(s3Policy.Status.Conditions[len(s3Policy.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				})
+				It("should call the s3client exists function once", func() {
+					Expect(s3MockSpy.PolicyExistsCalled).To(Equal(1))
+				})
+				It("should call the s3client update function once", func() {
+					Expect(s3MockSpy.UpdatePolicyCalled).To(Equal(1))
+				})
 			})
 		})
 	})
