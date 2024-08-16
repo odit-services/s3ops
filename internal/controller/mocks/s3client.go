@@ -48,6 +48,9 @@ func (f *S3ClientFactoryMocked) NewClient(s3Server v1alpha1.S3Server) (s3client.
 		},
 	}, nil
 }
+func (f *S3ClientFactoryMocked) NewAdminClient(s3Server v1alpha1.S3Server) (s3client.S3AdminClient, error) {
+	return nil, fmt.Errorf("not implemented")
+}
 
 type S3ClientMocked struct {
 	S3ClientMockEnv *S3ClientMockEnv

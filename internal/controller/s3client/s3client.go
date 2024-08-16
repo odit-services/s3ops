@@ -12,6 +12,7 @@ import (
 
 type S3ClientFactory interface {
 	NewClient(s3Server v1alpha1.S3Server) (S3Client, error)
+	NewAdminClient(s3Server v1alpha1.S3Server) (S3AdminClient, error)
 }
 type S3ClientFactoryDefault struct{}
 
@@ -27,10 +28,25 @@ func (f *S3ClientFactoryDefault) NewClient(s3Server v1alpha1.S3Server) (S3Client
 	}
 }
 
+func (f *S3ClientFactoryDefault) NewAdminClient(s3Server v1alpha1.S3Server) (S3AdminClient, error) {
+	switch s3Server.Spec.Type {
+	// case "minio":
+	// 	return minio.New(s3Server.Spec.Endpoint, &minio.Options{
+	// 		Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
+	// 		Secure: s3Server.Spec.TLS,
+	// 	})
+	default:
+		return nil, fmt.Errorf("not implemented")
+	}
+}
+
 type S3Client interface {
 	HealthCheck(time.Duration) (context.CancelFunc, error)
 	IsOnline() bool
 	BucketExists(context.Context, string) (bool, error)
 	MakeBucket(context.Context, string, minio.MakeBucketOptions) error
 	RemoveBucket(context.Context, string) error
+}
+
+type S3AdminClient interface {
 }
