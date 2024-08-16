@@ -123,7 +123,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{}, err
 		}
 
-		secretKey, err := gopassword.Generate(64, 20, 0, true, false)
+		secretKey, err := gopassword.Generate(64, 20, 0, true, true)
 		if err != nil {
 			r.logger.Errorw("Failed to generate secretKey", "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
