@@ -31,6 +31,8 @@ type S3ServerSpec struct {
 	// +kubebuilder:default=minio
 	Type string `json:"type" yaml:"type"`
 
+	// +optional
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=true
 	TLS bool `json:"tls" yaml:"tls"`
 
