@@ -49,4 +49,7 @@ type S3AdminClient interface {
 	UserExists(context.Context, string) (bool, error)
 	MakeUser(context.Context, string, string) error
 	RemoveUser(context.Context, string) error
+	PolicyExists(context.Context, string) (bool, error)
+	MakePolicy(context.Context, string, string) error
+	RemovePolicy(context.Context, string) error
 }

@@ -170,3 +170,15 @@ func (c *S3AdminClientMocked) RemoveUser(ctx context.Context, accessKey string) 
 	}
 	return nil
 }
+
+func (c *S3AdminClientMocked) PolicyExists(ctx context.Context, policyName string) (bool, error) {
+	return false, fmt.Errorf("not implemented")
+}
+
+func (c *S3AdminClientMocked) MakePolicy(ctx context.Context, policyName string, policy string) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (c *S3AdminClientMocked) RemovePolicy(ctx context.Context, policyName string) error {
+	return fmt.Errorf("not implemented")
+}

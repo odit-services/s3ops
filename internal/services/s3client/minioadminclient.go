@@ -2,6 +2,7 @@ package s3client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/minio/madmin-go"
 )
@@ -40,4 +41,16 @@ func (c *MinioAdminClient) MakeUser(ctx context.Context, accessKey string, secre
 
 func (c *MinioAdminClient) RemoveUser(ctx context.Context, accessKey string) error {
 	return c.Client.RemoveUser(context.Background(), accessKey)
+}
+
+func (c *MinioAdminClient) PolicyExists(ctx context.Context, policyName string) (bool, error) {
+	return false, fmt.Errorf("not implemented")
+}
+
+func (c *MinioAdminClient) MakePolicy(ctx context.Context, policyName string, policy string) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (c *MinioAdminClient) RemovePolicy(ctx context.Context, policyName string) error {
+	return fmt.Errorf("not implemented")
 }
