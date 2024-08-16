@@ -58,11 +58,16 @@ type S3Bucket struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   S3BucketSpec `json:"spec,omitempty"`
-	Status CRStatus     `json:"status,omitempty"`
+	Spec   S3BucketSpec   `json:"spec,omitempty"`
+	Status S3BucketStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
+type S3BucketStatus struct {
+	Created    bool               `json:"created,omitempty" yaml:"created,omitempty"`
+	Name       string             `json:"name,omitempty" yaml:"name,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+}
 
 // S3BucketList contains a list of S3Bucket
 type S3BucketList struct {

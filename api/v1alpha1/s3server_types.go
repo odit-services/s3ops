@@ -57,11 +57,15 @@ type S3Server struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" yaml:"metadata"`
 
-	Spec   S3ServerSpec `json:"spec,omitempty" yaml:"spec"`
-	Status CRStatus     `json:"status,omitempty" yaml:"status"`
+	Spec   S3ServerSpec   `json:"spec,omitempty" yaml:"spec"`
+	Status S3ServerStatus `json:"status,omitempty" yaml:"status"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
+type S3ServerStatus struct {
+	Online     bool               `json:"online" yaml:"online"`
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+}
 
 // S3ServerList contains a list of S3Server
 type S3ServerList struct {
