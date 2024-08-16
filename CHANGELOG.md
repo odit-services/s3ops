@@ -4,15 +4,15 @@
 
 > 2024-08-16
 
-### Chore
+### 🏡 Chore
 
 * **api:** new manifests
 
-### Docs
+### 📖 Documentation
 
 * **README:** Added description and other facts
 
-### Feat
+### 🚀 Enhancements
 
 * **api:** Added bucket spec info needed for creation
 * **api:** New S3User Object
@@ -56,7 +56,7 @@
 * **s3user_controller:** Implemented deletion
 * **s3user_controller:** Implement policy assign
 
-### Fix
+### 🩹 Fixes
 
 * **api:** Moved object annotation
 * **docker:** Copy over services directory
@@ -69,11 +69,11 @@
 * **s3user_controller:** Confirm with naming standards
 * **s3user_controller:** Generate password with correct settings)
 
-### Refacotor
+
 
 * **api:** Switch to disable flag instead of enable flag for s3bucket name generation
 
-### Refactor
+### 💅 Refactors
 
 * **api:** Switch to seperate status functions
 * **api:** Remove ability to provide s3user custom secret
@@ -90,12 +90,12 @@
 * **s3user_controller:** Migrate secret handling to helper functions
 * **tests:** Use mocked s3client instead of guesswork with play.min.io
 
-### Style
+### 🎨 Styles
 
 * **s3bucket_controller:** Removed unused comments
 * **s3server_controller:** Typo
 
-### Test
+### ✅ Tests
 
 * **controllers:** Added spy to s3client mocks
 * **controllers:** Reconcile test server objects for non-server reconcilers
