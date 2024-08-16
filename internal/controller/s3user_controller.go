@@ -208,6 +208,20 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 			}
 		}
+		err = r.Delete(ctx, secret)
+		if err != nil {
+			r.logger.Errorw("Failed to delete secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
+				Type:               s3oditservicesv1alpha1.ConditionFailed,
+				Status:             metav1.ConditionFalse,
+				Reason:             s3oditservicesv1alpha1.ReasonRequestFailed,
+				Message:            fmt.Sprintf("Failed to delete secret: %v", err),
+				LastTransitionTime: metav1.Now(),
+			})
+			r.Status().Update(ctx, s3User)
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		}
+
 		controllerutil.RemoveFinalizer(s3User, "s3.odit.services/user")
 		err := r.Update(ctx, s3User)
 		if err != nil {
