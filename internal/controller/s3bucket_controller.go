@@ -130,7 +130,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if len(bucketPrefix) > 39 {
 			truncateAt = 39
 		} else {
-			truncateAt = len(bucketPrefix) - 1
+			truncateAt = len(bucketPrefix)
 		}
 		bucketName = fmt.Sprintf("%s-%s", bucketPrefix[0:truncateAt], nanoID)
 	} else {
