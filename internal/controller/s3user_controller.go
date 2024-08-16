@@ -110,7 +110,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var secret *corev1.Secret
 	if s3User.Status.SecretRef == "" {
-		nanoID, err := gonanoid.New(32)
+		nanoID, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 20)
 		if err != nil {
 			r.logger.Errorw("Failed to generate nanoID", "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
@@ -138,13 +138,14 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 		}
 
+		accessKey := fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID)
 		secret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
 				Namespace: s3User.Namespace,
 			},
 			StringData: map[string]string{
-				"accessKey": fmt.Sprintf("%s-%s-%s", s3User.Name, s3User.Namespace, nanoID),
+				"accessKey": accessKey[0:19],
 				"secretKey": secretKey,
 			},
 		}
@@ -167,7 +168,15 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	userExists, err := s3AdminClient.UserExists(ctx, secret.StringData["accessKey"])
+	userCreds := struct {
+		AccessKey string
+		SecretKey string
+	}{
+		AccessKey: string(secret.Data["accessKey"]),
+		SecretKey: string(secret.Data["secretKey"]),
+	}
+
+	userExists, err := s3AdminClient.UserExists(ctx, userCreds.AccessKey)
 	if err != nil {
 		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
@@ -186,7 +195,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if !userExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else {
-			err := s3AdminClient.RemoveUser(ctx, secret.StringData["accessKey"])
+			err := s3AdminClient.RemoveUser(ctx, userCreds.AccessKey)
 			if err != nil {
 				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
 				s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
@@ -210,8 +219,8 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	if !userExists {
-		r.logger.Debugw("Creating user", "name", req.Name, "namespace", req.Namespace)
-		err = s3AdminClient.MakeUser(ctx, secret.StringData["accessKey"], secret.StringData["secretKey"])
+		r.logger.Infow("Creating user", "name", req.Name, "namespace", req.Namespace)
+		err = s3AdminClient.MakeUser(ctx, userCreds.AccessKey, userCreds.SecretKey)
 		if err != nil {
 			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
@@ -256,7 +265,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{}, fmt.Errorf("policy %s does not exist", policyRef)
 		}
 
-		err = s3AdminClient.ApplyPolicyToUser(ctx, policyRef, secret.StringData["accessKey"])
+		err = s3AdminClient.ApplyPolicyToUser(ctx, policyRef, userCreds.AccessKey)
 		if err != nil {
 			r.logger.Errorw("Failed to apply policy to user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			s3User.Status.Conditions = append(s3User.Status.Conditions, metav1.Condition{
