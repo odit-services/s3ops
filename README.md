@@ -4,7 +4,7 @@ A kubernetes operator to manage S3 resources.
 
 ## Description
 
-### Supported Resources
+### Supported resources
 
 - S3Server: The connection to an existing s3 backend
   - Actions: Check online status
@@ -21,29 +21,31 @@ A kubernetes operator to manage S3 resources.
 |---------|----------|----------|----------|--------|
 | Minio   | Yes      | Yes      | Yes      | Yes    |
 
-## Deploy the Operator
+## Deploy the operator
 
 ### Prerequisites
 
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy the Operator
+### Deploy the full operator
+
+> This includes the CRDs, RBAC, and the controller itself.
 
 ```sh
-kubectl apply -k https://raw.githubusercontent.com/odit-services/s3ops/main/config/deployment/full.yaml
+kubectl apply -f https://raw.githubusercontent.com/odit-services/s3ops/main/config/deployment/full.yaml
 ```
 
-## Getting Started with Development
+## Getting started with the development
 
-### Prerequisites
+### Local prerequisites
 
 - go version v1.21.0+
 - docker version 17.03+.
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
+### To deploy on the cluster
 
 **Build and push your image to the location specified by `IMG`:**
 
@@ -83,7 +85,7 @@ kubectl apply -k config/samples/
 
 >**NOTE**: Ensure that the samples has default values to test it out.
 
-### To Uninstall
+### To uninstall
 
 **Delete the instances (CRs) from the cluster:**
 
@@ -103,7 +105,7 @@ make uninstall
 make undeploy
 ```
 
-## Project Distribution
+## Project distribution
 
 Following are the steps to build the installer and distribute this project to users.
 
