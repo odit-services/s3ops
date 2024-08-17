@@ -56,9 +56,9 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 			CurrentRetries:    s3Bucket.Status.CurrentRetries + 1,
 		},
 	}
-	err = r.Status().Update(context.Background(), s3Bucket)
-	if err != nil {
-		r.logger.Errorw("Failed to update S3Bucket status", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
+	updateErr := r.Status().Update(context.Background(), s3Bucket)
+	if updateErr != nil {
+		r.logger.Errorw("Failed to update S3Bucket status", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", updateErr)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
 	r.logger.Infow("Requeue S3Bucket", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace)
@@ -197,6 +197,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Created: true,
 		Name:    bucketName,
 	}
+
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
 		r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
