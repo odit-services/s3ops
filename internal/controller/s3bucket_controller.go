@@ -227,7 +227,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		var policyContent string
 		switch s3Bucket.Spec.CreateUserFromTemplate {
 		case "readwrite":
-			policyContent = PolicyReadWrite
+			policyContent = fmt.Sprintf(PolicyReadWrite, bucketName, bucketName)
 		default:
 			return r.HandleError(s3Bucket, fmt.Errorf("unknown template: %s", s3Bucket.Spec.CreateUserFromTemplate))
 		}
