@@ -137,7 +137,7 @@ spec:
                 type: string
               lastMessage:
                 type: string
-              lastTransitionTime:
+              lastReconcileTime:
                 type: string
               secretRef:
                 type: string

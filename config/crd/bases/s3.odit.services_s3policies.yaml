@@ -135,7 +135,7 @@ spec:
                 type: string
               lastMessage:
                 type: string
-              lastTransitionTime:
+              lastReconcileTime:
                 type: string
               state:
                 type: string

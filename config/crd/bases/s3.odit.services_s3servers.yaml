@@ -141,7 +141,7 @@ spec:
                 type: string
               lastMessage:
                 type: string
-              lastTransitionTime:
+              lastReconcileTime:
                 type: string
               online:
                 type: boolean
