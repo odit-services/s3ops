@@ -154,6 +154,12 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("should set the status state to success", func() {
 					Expect(s3Bucket.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
 				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Bucket.Status.LastReconcileTime).ToNot(BeNil())
+				})
+				It("should set the status current retries to 0", func() {
+					Expect(s3Bucket.Status.CurrentRetries).To(Equal(0))
+				})
 				It("Should call the bucket exists function once", func() {
 					Expect(s3MockSpy.BucketExistsCalled).To(Equal(1))
 				})
@@ -251,6 +257,12 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should not set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
 				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Bucket.Status.LastReconcileTime).ToNot(BeNil())
+				})
+				It("should set the status current retries to 1", func() {
+					Expect(s3Bucket.Status.CurrentRetries).To(Equal(1))
+				})
 			})
 			When("A new valid s3bucket is created with a invalid s3server", func() {
 				var err error
@@ -292,6 +304,12 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				It("Should not set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).ToNot(BeTrue())
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Bucket.Status.LastReconcileTime).ToNot(BeNil())
+				})
+				It("should set the status current retries to 1", func() {
+					Expect(s3Bucket.Status.CurrentRetries).To(Equal(1))
 				})
 			})
 		})
