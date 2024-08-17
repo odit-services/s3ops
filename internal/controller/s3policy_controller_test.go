@@ -76,10 +76,6 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 				TLS:      true,
 				Auth:     s3MockEnv.ValidCredentials[0],
 			},
-			Status: s3oditservicesv1alpha1.S3ServerStatus{
-				Online:     true,
-				Conditions: []metav1.Condition{},
-			},
 		}
 		Expect(k8sClient.Create(ctx, s3Server)).To(Succeed())
 		serverReconciler.Reconcile(ctx, ctrl.Request{
@@ -103,10 +99,6 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 					AccessKey: "invalid",
 					SecretKey: "invalid",
 				},
-			},
-			Status: s3oditservicesv1alpha1.S3ServerStatus{
-				Online:     false,
-				Conditions: []metav1.Condition{},
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
