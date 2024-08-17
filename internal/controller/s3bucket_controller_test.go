@@ -335,8 +335,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 							Name:      s3Server.Name,
 							Namespace: s3Server.Namespace,
 						},
-						Region:        "eu-west-1",
-						ObjectLocking: false,
+						Region: "eu-west-1",
 					},
 				}
 				Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
@@ -370,7 +369,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				}, &s3Bucket)).To(HaveOccurred())
 			})
 		})
-		When("A valid s3bucket is deleted", func() {
+		When("A valid s3bucket is soft-deleted", func() {
 			var err error
 			var s3Bucket s3oditservicesv1alpha1.S3Bucket
 
