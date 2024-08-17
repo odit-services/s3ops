@@ -5,11 +5,28 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.2.2](#v0.2.2)
 * [v0.2.1](#v0.2.1)
 * [v0.2.0](#v0.2.0)
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.2.2"></a>
+### [v0.2.2](https://github.com/odit-services/s3ops/compare/v0.2.1...v0.2.2)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **make:** Patch version for yaml build
+
 
 <a name="v0.2.1"></a>
 ### [v0.2.1](https://github.com/odit-services/s3ops/compare/v0.2.0...v0.2.1)
