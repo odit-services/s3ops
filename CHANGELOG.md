@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.3.0](#v0.3.0)
 * [v0.2.3](#v0.2.3)
 * [v0.2.2](#v0.2.2)
 * [v0.2.1](#v0.2.1)
@@ -12,6 +13,31 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.3.0"></a>
+### [v0.3.0](https://github.com/odit-services/s3ops/compare/v0.2.3...v0.3.0)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3client:** Support external secrets for servers
+* **s3server_controller:** Support for existing secrets
+
+#### 💅 Refactors
+
+* **api:** Add existingSecret ref option to s3server
+
+#### ✅ Tests
+
+* **s3bucket_controller:** Test for s3server with secretauth to handle s3client helper function test
+* **s3server_controller:** Added tests for servers with existing secrets
+
 
 <a name="v0.2.3"></a>
 ### [v0.2.3](https://github.com/odit-services/s3ops/compare/v0.2.2...v0.2.3)
