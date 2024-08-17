@@ -931,12 +931,12 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.4.2
+        image: ghcr.io/odit-services/s3ops:v0.4.3
         name: manager
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
+            memory: 1024Mi
           requests:
             cpu: 10m
             memory: 64Mi
