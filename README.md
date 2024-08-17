@@ -33,7 +33,11 @@ A kubernetes operator to manage S3 resources.
 > This includes the CRDs, RBAC, and the controller itself.
 
 ```sh
+# Deploy the latest version
 kubectl apply -f https://raw.githubusercontent.com/odit-services/s3ops/main/config/deployment/full.yaml
+
+# Deploy a specific version
+kubectl apply -f https://raw.githubusercontent.com/odit-services/s3ops/<tag>/config/deployment/full.yaml
 ```
 
 ## Getting started with the development
