@@ -51,6 +51,8 @@ type S3BucketSpec struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="The current state of the resource"
+// +kubebuilder:printcolumn:name="LastAction",type="string",JSONPath=".status.lastAction",description="The last action taken on the resource"
 
 // S3Bucket is the Schema for the s3buckets API
 type S3Bucket struct {

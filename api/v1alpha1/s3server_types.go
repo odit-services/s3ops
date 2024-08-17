@@ -67,8 +67,11 @@ type S3ServerAuthSpec struct {
 	SecretKeySecretKey string `json:"secretKeySecretKey" yaml:"secretKeySecretKey"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Online",type="boolean",JSONPath=".status.online",description="Is the server online"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="The current state of the resource"
+// +kubebuilder:printcolumn:name="LastAction",type="string",JSONPath=".status.lastAction",description="The last action taken on the resource"
 
 // S3Server is the Schema for the s3servers API
 type S3Server struct {

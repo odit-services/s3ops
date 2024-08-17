@@ -38,6 +38,9 @@ type S3PolicyStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Created",type="boolean",JSONPath=".status.created",description="Whether the resource has been created"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="The current state of the resource"
+// +kubebuilder:printcolumn:name="LastAction",type="string",JSONPath=".status.lastAction",description="The last action taken on the resource"
 
 // S3Policy is the Schema for the s3policies API
 type S3Policy struct {

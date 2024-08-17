@@ -45,6 +45,9 @@ type S3UserStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Created",type="boolean",JSONPath=".status.created",description="Whether the resource has been created"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="The current state of the resource"
+// +kubebuilder:printcolumn:name="LastAction",type="string",JSONPath=".status.lastAction",description="The last action taken on the resource"
 
 // S3User is the Schema for the s3users API
 type S3User struct {

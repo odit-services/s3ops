@@ -14,7 +14,20 @@ spec:
     singular: s3user
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Whether the resource has been created
+      jsonPath: .status.created
+      name: Created
+      type: boolean
+    - description: The current state of the resource
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: The last action taken on the resource
+      jsonPath: .status.lastAction
+      name: LastAction
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3User is the Schema for the s3users API
