@@ -1,5 +1,8 @@
 # s3ops
 
+![GitHub Tag](https://img.shields.io/github/v/tag/odit-services/s3ops?style=for-the-badge&logo=git) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/odit-services/s3ops?style=for-the-badge&logo=go)
+
+
 A kubernetes operator to manage S3 resources.
 
 ## Description
