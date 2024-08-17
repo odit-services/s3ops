@@ -49,10 +49,9 @@ spec:
             description: S3BucketSpec defines the desired state of S3Bucket
             properties:
               createUserFromTemplate:
-                default: none
                 enum:
-                - none
                 - readwrite
+                - ""
                 type: string
               disableNameGeneration:
                 default: false

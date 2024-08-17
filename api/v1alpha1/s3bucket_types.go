@@ -50,8 +50,7 @@ type S3BucketSpec struct {
 
 	// +optional
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=none
-	// +kubebuilder:validation:Enum=none;readwrite
+	// +kubebuilder:validation:Enum=readwrite;"";
 	CreateUserFromTemplate string `json:"createUserFromTemplate" yaml:"createUserFromTemplate"`
 }
 
