@@ -61,7 +61,7 @@ const (
 					],
 					"Resource": [
 						"arn:aws:s3:::%s",
-						"arn:aws:s3:::%s/*",
+						"arn:aws:s3:::%s/*"
 					]
 				}
 			]
