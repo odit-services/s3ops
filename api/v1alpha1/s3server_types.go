@@ -44,11 +44,27 @@ type S3ServerSpec struct {
 }
 
 type S3ServerAuthSpec struct {
-	// +kubebuilder:validation:Required
+	// +optional
+	// +kubebuilder:validation:Optional
 	AccessKey string `json:"accessKey" yaml:"accessKey"`
 
-	// +kubebuilder:validation:Required
+	// +optional
+	// +kubebuilder:validation:Optional
 	SecretKey string `json:"secretKey" yaml:"secretKey"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	ExistingSecretRef string `json:"existingSecretRef" yaml:"existingSecretRef"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=accessKey
+	AccessKeySecretKey string `json:"accessKeySecretKey" yaml:"accessKeySecretKey"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=secretKey
+	SecretKeySecretKey string `json:"secretKeySecretKey" yaml:"secretKeySecretKey"`
 }
 
 //+kubebuilder:object:root=true

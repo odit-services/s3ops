@@ -43,11 +43,16 @@ spec:
                 properties:
                   accessKey:
                     type: string
+                  accessKeySecretKey:
+                    default: accessKey
+                    type: string
+                  existingSecretRef:
+                    type: string
                   secretKey:
                     type: string
-                required:
-                - accessKey
-                - secretKey
+                  secretKeySecretKey:
+                    default: secretKey
+                    type: string
                 type: object
               endpoint:
                 type: string
