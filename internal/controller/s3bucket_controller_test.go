@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -390,6 +391,9 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				})
 				It("Should set the status created to true", func() {
 					Expect(s3Bucket.Status.Created).To(BeTrue())
+				})
+				It("Should set the policy content to the readwrite template", func() {
+					Expect(s3Policy.Spec.PolicyContent).To(Equal(fmt.Sprintf(PolicyReadWrite, s3Bucket.Status.Name, s3Bucket.Status.Name)))
 				})
 			})
 			When("A new valid s3bucket is created with a nonexistant s3server", func() {
