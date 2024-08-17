@@ -55,6 +55,8 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 			CurrentRetries:    s3Bucket.Status.CurrentRetries + 1,
 		},
+		Name:    s3Bucket.Status.Name,
+		Created: s3Bucket.Status.Created,
 	}
 	updateErr := r.Status().Update(context.Background(), s3Bucket)
 	if updateErr != nil {
@@ -84,6 +86,8 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			State:      s3oditservicesv1alpha1.StatePending,
 			LastAction: s3oditservicesv1alpha1.ActionUnknown,
 		},
+		Name:    s3Bucket.Status.Name,
+		Created: s3Bucket.Status.Created,
 	}
 	err = r.Status().Update(ctx, s3Bucket)
 	if err != nil {
@@ -143,6 +147,8 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				State:      s3oditservicesv1alpha1.StateReconciling,
 				LastAction: s3oditservicesv1alpha1.ActionDelete,
 			},
+			Name:    s3Bucket.Status.Name,
+			Created: s3Bucket.Status.Created,
 		}
 		err = r.Status().Update(ctx, s3Bucket)
 		if err != nil {
@@ -194,8 +200,8 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 			CurrentRetries:    0,
 		},
+		Name:    s3Bucket.Status.Name,
 		Created: true,
-		Name:    bucketName,
 	}
 
 	err = r.Status().Update(ctx, s3Bucket)
