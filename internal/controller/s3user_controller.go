@@ -88,7 +88,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	s3User.Status = s3oditservicesv1alpha1.S3UserStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
 			State:             s3oditservicesv1alpha1.StateReconciling,
-			LastAction:        s3User.Status.LastAction,
+			LastAction:        s3oditservicesv1alpha1.ActionUnknown,
 			LastMessage:       fmt.Sprintf("Reconciling S3User %s", s3User.Name),
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 			CurrentRetries:    s3User.Status.CurrentRetries,
@@ -171,6 +171,13 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	if s3User.DeletionTimestamp != nil {
+		s3User.Status.LastAction = s3oditservicesv1alpha1.ActionDelete
+		err = r.Status().Update(ctx, s3User)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+
 		r.logger.Infow("Deleting S3User", "name", req.Name, "namespace", req.Namespace)
 		if !userExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
@@ -188,7 +195,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 
 		controllerutil.RemoveFinalizer(s3User, "s3.odit.services/user")
-		err := r.Update(ctx, s3User)
+		err = r.Update(ctx, s3User)
 		if err != nil {
 			r.logger.Errorw("Failed to remove finalizer from S3User resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
@@ -198,12 +205,27 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	if !userExists {
 		r.logger.Infow("Creating user", "name", req.Name, "namespace", req.Namespace)
+		s3User.Status.LastAction = s3oditservicesv1alpha1.ActionCreate
+		err = r.Status().Update(ctx, s3User)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+
 		err = s3AdminClient.MakeUser(ctx, userCreds.AccessKey, userCreds.SecretKey)
 		if err != nil {
 			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
 		}
 		s3User.Status.Created = true
+	} else {
+		r.logger.Debugw("User already exists", "name", req.Name, "namespace", req.Namespace)
+		s3User.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
+		err = r.Status().Update(ctx, s3User)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3User resource status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
 	}
 
 	for _, policyRef := range s3User.Spec.PolicyRefs {

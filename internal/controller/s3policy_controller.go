@@ -82,7 +82,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Policy.Status = s3oditservicesv1alpha1.S3PolicyStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
 			State:             s3oditservicesv1alpha1.StateReconciling,
-			LastAction:        s3Policy.Status.LastAction,
+			LastAction:        s3oditservicesv1alpha1.ActionUnknown,
 			LastMessage:       fmt.Sprintf("Reconciling S3Policy %s", s3Policy.Name),
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 			CurrentRetries:    s3Policy.Status.CurrentRetries,
@@ -118,6 +118,13 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if s3Policy.DeletionTimestamp != nil {
 		r.logger.Infow("Deleting S3Policy", "name", req.Name, "namespace", req.Namespace)
+		s3Policy.Status.LastAction = s3oditservicesv1alpha1.ActionDelete
+		err = r.Status().Update(ctx, s3Policy)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Policy, err)
+		}
+
 		if !policyExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else {
@@ -137,12 +144,26 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !policyExists {
+		s3Policy.Status.LastAction = s3oditservicesv1alpha1.ActionCreate
+		err = r.Status().Update(ctx, s3Policy)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Policy, err)
+		}
+
 		err = s3AdminClient.MakePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
 		if err != nil {
 			r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3Policy, err)
 		}
 	} else {
+		s3Policy.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
+		err = r.Status().Update(ctx, s3Policy)
+		if err != nil {
+			r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Policy, err)
+		}
+
 		err = s3AdminClient.UpdatePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
 		if err != nil {
 			r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)

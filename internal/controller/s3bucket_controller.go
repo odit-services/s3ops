@@ -83,7 +83,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
-			State:             s3oditservicesv1alpha1.StatePending,
+			State:             s3oditservicesv1alpha1.StateReconciling,
 			LastAction:        s3oditservicesv1alpha1.ActionUnknown,
 			CurrentRetries:    s3Bucket.Status.CurrentRetries,
 			LastReconcileTime: time.Now().Format(time.RFC3339),
@@ -144,15 +144,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if s3Bucket.DeletionTimestamp != nil {
 		r.logger.Infow("Deleting s3Bucket", "name", req.Name, "namespace", req.Namespace)
-		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
-			CrStatus: s3oditservicesv1alpha1.CrStatus{
-				State:          s3oditservicesv1alpha1.StateReconciling,
-				LastAction:     s3oditservicesv1alpha1.ActionDelete,
-				CurrentRetries: s3Bucket.Status.CurrentRetries,
-			},
-			Name:    s3Bucket.Status.Name,
-			Created: s3Bucket.Status.Created,
-		}
+		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionDelete
 		err = r.Status().Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
@@ -192,6 +184,13 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Bucket, err)
 		}
 		s3Bucket.Status.Created = true
+	} else {
+		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
+		err = r.Status().Update(ctx, s3Bucket)
+		if err != nil {
+			r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		}
 	}
 
 	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)

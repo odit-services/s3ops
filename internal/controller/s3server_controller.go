@@ -84,7 +84,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Server.Status = s3oditservicesv1alpha1.S3ServerStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
 			State:             s3oditservicesv1alpha1.StateReconciling,
-			LastAction:        s3Server.Status.LastAction,
+			LastAction:        s3oditservicesv1alpha1.ActionUnknown,
 			LastMessage:       "Reconciling S3Server",
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 			CurrentRetries:    s3Server.Status.CurrentRetries,
