@@ -21,7 +21,20 @@ A kubernetes operator to manage S3 resources.
 |---------|----------|----------|----------|--------|
 | Minio   | Yes      | Yes      | Yes      | Yes    |
 
-## Getting Started
+## Deploy the Operator
+
+### Prerequisites
+
+- kubectl version v1.11.3+.
+- Access to a Kubernetes v1.11.3+ cluster.
+
+### To Deploy the Operator
+
+```sh
+kubectl apply -k https://raw.githubusercontent.com/odit-services/s3ops/main/config/deployment/full.yaml
+```
+
+## Getting Started with Development
 
 ### Prerequisites
 
