@@ -62,7 +62,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: controller:latest
+        image: ghcr.io/odit-services/s3ops:v0.2.0
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
