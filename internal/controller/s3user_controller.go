@@ -111,7 +111,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	s3AdminClient, _, err := s3client.GetS3AdminClientFromS3Server(s3User.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	s3AdminClient, err := s3client.GetS3AdminClientFromS3Server(s3User.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to create S3 admin client for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3User, err)
@@ -141,7 +141,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				"secretKey": secretKey,
 			},
 		}
-		_, err = createSecret(ctx, r.Client, secret)
+		err = createSecret(ctx, r.Client, secret)
 		if err != nil {
 			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
@@ -149,7 +149,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		s3User.Status.SecretRef = secret.Name
 		r.Status().Update(ctx, s3User)
 	} else {
-		secret, _, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
+		secret, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
 		if err != nil {
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)

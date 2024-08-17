@@ -104,7 +104,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	s3AdminClient, _, err := s3client.GetS3AdminClientFromS3Server(s3Policy.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	s3AdminClient, err := s3client.GetS3AdminClientFromS3Server(s3Policy.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3AdminClient", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3Policy, err)
