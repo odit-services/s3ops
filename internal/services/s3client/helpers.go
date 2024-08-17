@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/odit-services/s3ops/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -26,6 +27,17 @@ func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1
 			Message:            "S3Server resource not found",
 			LastTransitionTime: metav1.Now(),
 		}, err
+	}
+
+	if s3Server.Spec.Auth.ExistingSecretRef != "" {
+		secret := &corev1.Secret{}
+		err := r.Get(ctx, client.ObjectKey{Namespace: s3Server.Namespace, Name: s3Server.Spec.Auth.ExistingSecretRef}, secret)
+		if err != nil {
+			return &v1alpha1.S3Server{}, metav1.Condition{}, err
+		}
+
+		s3Server.Spec.Auth.AccessKey = string(secret.Data[s3Server.Spec.Auth.AccessKeySecretKey])
+		s3Server.Spec.Auth.SecretKey = string(secret.Data[s3Server.Spec.Auth.SecretKeySecretKey])
 	}
 
 	return s3Server, metav1.Condition{}, nil
