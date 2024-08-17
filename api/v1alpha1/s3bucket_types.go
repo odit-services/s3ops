@@ -47,6 +47,12 @@ type S3BucketSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=false
 	SoftDelete bool `json:"softDelete" yaml:"softDelete"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=none
+	// +kubebuilder:validation:Enum=none;readwrite
+	CreateUserFromTemplate string `json:"createUserFromTemplate" yaml:"createUserFromTemplate"`
 }
 
 //+kubebuilder:object:root=true
