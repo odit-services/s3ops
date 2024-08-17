@@ -861,7 +861,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.2.0
+        image: ghcr.io/odit-services/s3ops:v0.2.1
         livenessProbe:
           httpGet:
             path: /healthz
