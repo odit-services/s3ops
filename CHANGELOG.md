@@ -10,7 +10,6 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Changes
 
-
 <a name="v0.2.0"></a>
 ### [v0.2.0](https://github.com/odit-services/s3ops/compare/v0.1.0...v0.2.0)
 
