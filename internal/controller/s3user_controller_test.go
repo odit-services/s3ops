@@ -77,10 +77,6 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				TLS:      true,
 				Auth:     s3MockEnv.ValidCredentials[0],
 			},
-			Status: s3oditservicesv1alpha1.S3ServerStatus{
-				Online:     true,
-				Conditions: []metav1.Condition{},
-			},
 		}
 		Expect(k8sClient.Create(ctx, s3Server)).To(Succeed())
 		serverReconciler.Reconcile(ctx, ctrl.Request{
@@ -104,10 +100,6 @@ var _ = Describe("S3User Controller", Ordered, func() {
 					AccessKey: "invalid",
 					SecretKey: "invalid",
 				},
-			},
-			Status: s3oditservicesv1alpha1.S3ServerStatus{
-				Online:     false,
-				Conditions: []metav1.Condition{},
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
@@ -159,8 +151,11 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3User.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3User.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("Should set the status created to true", func() {
 					Expect(s3User.Status.Created).To(BeTrue())
@@ -220,8 +215,11 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				It("Should return an error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-				It("should set the status condition to type failed", func() {
-					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				It("should set the status state to success", func() {
+					Expect(s3User.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3User.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should not set the created status to true", func() {
 					Expect(s3User.Status.Created).ToNot(BeTrue())
@@ -285,8 +283,11 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3User.Status.Conditions[len(s3User.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3User.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3User.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("Should set the status secret ref to a valid secret", func() {
 					Expect(s3User.Status.SecretRef).ToNot(BeEmpty())
