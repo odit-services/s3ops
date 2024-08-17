@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.4.3](#v0.4.3)
 * [v0.4.2](#v0.4.2)
 * [v0.4.1](#v0.4.1)
 * [v0.4.0](#v0.4.0)
@@ -17,6 +18,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.4.3"></a>
+### [v0.4.3](https://github.com/odit-services/s3ops/compare/v0.4.2...v0.4.3)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **manager:** Increase memeory limit
+
 
 <a name="v0.4.2"></a>
 ### [v0.4.2](https://github.com/odit-services/s3ops/compare/v0.4.1...v0.4.2)
