@@ -48,3 +48,9 @@ func createSecret(ctx context.Context, r client.Client, secret *corev1.Secret) (
 
 	return metav1.Condition{}, nil
 }
+
+const (
+	PolicyReadWrite = `
+		TODO:
+	`
+)

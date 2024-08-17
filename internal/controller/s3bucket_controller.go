@@ -25,6 +25,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -163,6 +164,33 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return r.HandleError(s3Bucket, err)
 			}
 		}
+
+		if s3Bucket.Spec.CreateUserFromTemplate != "" {
+			r.logger.Debugw("Removing policy", "name", req.Name, "namespace", req.Namespace)
+			err := r.Client.Delete(ctx, &s3oditservicesv1alpha1.S3Policy{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      s3Bucket.Name,
+					Namespace: req.Namespace,
+				},
+			})
+			if err != nil {
+				r.logger.Errorw("Failed to remove policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+
+			r.logger.Debugw("Removing user", "name", req.Name, "namespace", req.Namespace)
+			err = r.Client.Delete(ctx, &s3oditservicesv1alpha1.S3User{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      s3Bucket.Name,
+					Namespace: req.Namespace,
+				},
+			})
+			if err != nil {
+				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+		}
+
 		controllerutil.RemoveFinalizer(s3Bucket, "s3.odit.services/bucket")
 		err := r.Update(ctx, s3Bucket)
 		if err != nil {
@@ -190,6 +218,103 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err != nil {
 			r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		}
+	}
+
+	if s3Bucket.Spec.CreateUserFromTemplate != "" {
+		r.logger.Infow("Create policy for bucket", "name", req.Name, "namespace", req.Namespace, "template", s3Bucket.Spec.CreateUserFromTemplate)
+
+		var policyContent string
+		switch s3Bucket.Spec.CreateUserFromTemplate {
+		case "readwrite":
+			policyContent = PolicyReadWrite
+		default:
+			return r.HandleError(s3Bucket, fmt.Errorf("unknown template: %s", s3Bucket.Spec.CreateUserFromTemplate))
+		}
+
+		policyExists := false
+		policy := &s3oditservicesv1alpha1.S3Policy{}
+		err = r.Client.Get(ctx, client.ObjectKey{
+			Namespace: req.Namespace,
+			Name:      s3Bucket.Name,
+		}, policy)
+		if err == nil {
+			r.logger.Debugw("Policy already exists", "name", req.Name, "namespace", req.Namespace)
+			policyExists = true
+		} else if client.IgnoreNotFound(err) != nil {
+			r.logger.Errorw("Failed to get policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
+
+		if !policyExists {
+			err := r.Client.Create(ctx, &s3oditservicesv1alpha1.S3Policy{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      s3Bucket.Name,
+					Namespace: req.Namespace,
+					Labels: map[string]string{
+						"bucket":   s3Bucket.Name,
+						"template": s3Bucket.Spec.CreateUserFromTemplate,
+						"owner":    s3Bucket.Name,
+					},
+				},
+				Spec: s3oditservicesv1alpha1.S3PolicySpec{
+					ServerRef:     s3Bucket.Spec.ServerRef,
+					PolicyContent: policyContent,
+				},
+			})
+			if err != nil {
+				r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Finished creating policy", "name", req.Name, "namespace", req.Namespace)
+		} else {
+			policy.Spec.PolicyContent = policyContent
+			err := r.Client.Update(ctx, policy)
+			if err != nil {
+				r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Finished updating policy", "name", req.Name, "namespace", req.Namespace)
+		}
+
+		userExists := false
+		user := &s3oditservicesv1alpha1.S3User{}
+		err = r.Client.Get(ctx, client.ObjectKey{
+			Namespace: req.Namespace,
+			Name:      s3Bucket.Name,
+		}, user)
+		if err == nil {
+			r.logger.Debugw("User already exists", "name", req.Name, "namespace", req.Namespace)
+			userExists = true
+		} else if client.IgnoreNotFound(err) != nil {
+			r.logger.Errorw("Failed to get user", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
+
+		if !userExists {
+			r.logger.Infow("Create user for bucket", "name", req.Name, "namespace", req.Namespace, "template", s3Bucket.Spec.CreateUserFromTemplate)
+			err = r.Client.Create(ctx, &s3oditservicesv1alpha1.S3User{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      s3Bucket.Name,
+					Namespace: req.Namespace,
+					Labels: map[string]string{
+						"bucket":   s3Bucket.Name,
+						"template": s3Bucket.Spec.CreateUserFromTemplate,
+						"owner":    s3Bucket.Name,
+					},
+				},
+				Spec: s3oditservicesv1alpha1.S3UserSpec{
+					ServerRef:  s3Bucket.Spec.ServerRef,
+					PolicyRefs: []string{s3Bucket.Name},
+				},
+			})
+			if err != nil {
+				r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Finished creating user", "name", req.Name, "namespace", req.Namespace)
+		} else {
+			r.logger.Infow("User already exists", "name", req.Name, "namespace", req.Namespace)
 		}
 	}
 
