@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.4.2](#v0.4.2)
 * [v0.4.1](#v0.4.1)
 * [v0.4.0](#v0.4.0)
 * [v0.3.1](#v0.3.1)
@@ -16,6 +17,27 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.4.2"></a>
+### [v0.4.2](https://github.com/odit-services/s3ops/compare/v0.4.1...v0.4.2)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **deployment:** Remove probles
+
+#### 💅 Refactors
+
+* **controller:** Remove unused Condition return values
+* **controller:** Remove Condition return from helper functions
+* **s3client:** Removed condition from helper functions
+
 
 <a name="v0.4.1"></a>
 ### [v0.4.1](https://github.com/odit-services/s3ops/compare/v0.4.0...v0.4.1)
