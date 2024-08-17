@@ -347,7 +347,13 @@ build-yaml: kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} && cd ../..
 	$(KUSTOMIZE) build config/default/ > config/deployment/full.yaml
 	$(KUSTOMIZE) build config/crd/ > config/deployment/crds.yaml
+	git add config/deployment/full.yaml config/deployment/crds.yaml config/manager/kustomization.yaml
+	git commit -m "chore(deploy): update deployment manifests"
+
+.PHONY: git-push
+git-push:
+	git push --follow-tags
 
 .PHONY: release
-release: changelog tag ## Generate a changelog and tag the current commit with the version number.
+release: build-yaml tag changelog git-push  ## Generate a changelog and tag the current commit with the version number.
 	make docker-build-multiarch IMG=$(IMG)
