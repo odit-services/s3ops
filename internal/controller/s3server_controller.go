@@ -33,6 +33,7 @@ import (
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // S3ServerReconciler reconciles a S3Server object
@@ -93,6 +94,25 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
 		return r.HandleError(s3Server, err)
+	}
+
+	if s3Server.Spec.Auth.ExistingSecretRef != "" {
+		r.logger.Infow("Using existing secret for S3Server", "name", req.Name, "namespace", req.Namespace)
+		secret := &corev1.Secret{}
+		err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: s3Server.Spec.Auth.ExistingSecretRef}, secret)
+		if err != nil {
+			r.logger.Errorw("Failed to get secret for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Server, err)
+		}
+
+		if s3Server.Spec.Auth.AccessKeySecretKey == "" {
+			s3Server.Spec.Auth.AccessKeySecretKey = "accessKey"
+		}
+		if s3Server.Spec.Auth.SecretKeySecretKey == "" {
+			s3Server.Spec.Auth.SecretKeySecretKey = "secretKey"
+		}
+		s3Server.Spec.Auth.AccessKey = string(secret.Data[s3Server.Spec.Auth.AccessKeySecretKey])
+		s3Server.Spec.Auth.SecretKey = string(secret.Data[s3Server.Spec.Auth.SecretKeySecretKey])
 	}
 
 	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)

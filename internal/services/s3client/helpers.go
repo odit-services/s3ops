@@ -36,6 +36,13 @@ func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1
 			return &v1alpha1.S3Server{}, metav1.Condition{}, err
 		}
 
+		if s3Server.Spec.Auth.AccessKeySecretKey == "" {
+			s3Server.Spec.Auth.AccessKeySecretKey = "accessKey"
+		}
+		if s3Server.Spec.Auth.SecretKeySecretKey == "" {
+			s3Server.Spec.Auth.SecretKeySecretKey = "secretKey"
+		}
+
 		s3Server.Spec.Auth.AccessKey = string(secret.Data[s3Server.Spec.Auth.AccessKeySecretKey])
 		s3Server.Spec.Auth.SecretKey = string(secret.Data[s3Server.Spec.Auth.SecretKeySecretKey])
 	}
