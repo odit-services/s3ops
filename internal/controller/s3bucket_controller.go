@@ -59,6 +59,7 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 		r.logger.Errorw("Failed to update S3Bucket status", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
+	r.logger.Infow("Requeue S3Bucket", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace)
 	return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 }
 
@@ -69,7 +70,6 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	r.logger.Infow("Reconciling S3Bucket", "name", req.Name, "namespace", req.Namespace)
-
 	s3Bucket := &s3oditservicesv1alpha1.S3Bucket{}
 	err := r.Get(ctx, req.NamespacedName, s3Bucket)
 	if err != nil {
