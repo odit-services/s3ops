@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -35,6 +36,9 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 	ctx := context.Background()
 	s3MockEnv := mocks.DefaultMockEnvs()
 	s3MockSpy := mocks.S3ClientMockSpy{}
+	validSecret := corev1.Secret{}
+	validSecretCustomKeys := corev1.Secret{}
+	invalidSecret := corev1.Secret{}
 	var testReconciler *S3ServerReconciler
 
 	BeforeAll(func() {
@@ -50,6 +54,40 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				S3ClientMockSpy: &s3MockSpy,
 			},
 		}
+		By("creating the test secrets")
+		validSecret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "valid-s3-secret",
+				Namespace: "default",
+			},
+			StringData: map[string]string{
+				"accessKey": s3MockEnv.ValidCredentials[0].AccessKey,
+				"secretKey": s3MockEnv.ValidCredentials[0].SecretKey,
+			},
+		}
+		Expect(k8sClient.Create(ctx, &validSecret)).To(Succeed())
+		validSecretCustomKeys = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "valid-s3-secret-custom",
+				Namespace: "default",
+			},
+			StringData: map[string]string{
+				"ACCESS_KEY":    s3MockEnv.ValidCredentials[0].AccessKey,
+				"SECRET_KEY_ID": s3MockEnv.ValidCredentials[0].SecretKey,
+			},
+		}
+		Expect(k8sClient.Create(ctx, &validSecretCustomKeys)).To(Succeed())
+		invalidSecret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "invalid-s3-secret",
+				Namespace: "default",
+			},
+			StringData: map[string]string{
+				"accessKey": "invalid",
+				"secretKey": "invalid",
+			},
+		}
+		Expect(k8sClient.Create(ctx, &invalidSecret)).To(Succeed())
 	})
 
 	Describe("Testing the reconcoile function", func() {
@@ -74,6 +112,106 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 							Endpoint: s3MockEnv.ValidEndpoints[0],
 							TLS:      true,
 							Auth:     s3MockEnv.ValidCredentials[0],
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
+
+					result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
+
+				It("should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status state to success", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
+				})
+				It("should set the status condition to type online", func() {
+					Expect(s3Server.Status.Online).To(BeTrue())
+				})
+			})
+			When("A new valid s3server is created with auth provided via a secret with default keys", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				var result reconcile.Result
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server-secretauth",
+						Namespace: "default",
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: s3MockEnv.ValidEndpoints[0],
+							TLS:      true,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								ExistingSecretRef: validSecret.Name,
+							},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
+
+					result, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
+
+				It("should not return an error", func() {
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should return a result with requeue set higher than 0", func() {
+					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+				})
+				It("should set the status state to success", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
+				})
+				It("should set the status condition to type online", func() {
+					Expect(s3Server.Status.Online).To(BeTrue())
+				})
+			})
+			When("A new valid s3server is created with auth provided via a secret with custom keys", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				var result reconcile.Result
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server-customsecretauth",
+						Namespace: "default",
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: s3MockEnv.ValidEndpoints[0],
+							TLS:      true,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								ExistingSecretRef:  validSecretCustomKeys.Name,
+								AccessKeySecretKey: "ACCESS_KEY",
+								SecretKeySecretKey: "SECRET_KEY_ID",
+							},
 						},
 					}
 					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
@@ -169,6 +307,52 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
 								AccessKey: "invalid",
 								SecretKey: "invalid",
+							},
+						},
+					}
+					Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
+					Expect(err).ToNot(HaveOccurred())
+
+					_, err = testReconciler.Reconcile(ctx, reconcile.Request{
+						NamespacedName: nameSpacedName,
+					})
+					log.Printf("Error: %v", err)
+					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
+				})
+
+				It("should return an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+				It("should set the status state to failed", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
+				})
+				It("should set the online status to false", func() {
+					Expect(s3Server.Status.Online).To(BeFalse())
+				})
+			})
+			When("A new invalid s3server is with an wrong credentials provided via secret", func() {
+				var err error
+				var s3Server s3oditservicesv1alpha1.S3Server
+				BeforeAll(func() {
+					s3MockSpy = mocks.S3ClientMockSpy{}
+					nameSpacedName := types.NamespacedName{
+						Name:      "test-s3server-invalid-secretcredentials",
+						Namespace: "default",
+					}
+					s3Server = s3oditservicesv1alpha1.S3Server{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      nameSpacedName.Name,
+							Namespace: nameSpacedName.Namespace,
+						},
+						Spec: s3oditservicesv1alpha1.S3ServerSpec{
+							Type:     "minio",
+							Endpoint: s3MockEnv.ValidEndpoints[0],
+							TLS:      true,
+							Auth: s3oditservicesv1alpha1.S3ServerAuthSpec{
+								ExistingSecretRef: invalidSecret.Name,
 							},
 						},
 					}
