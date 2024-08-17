@@ -33,7 +33,6 @@ import (
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // S3ServerReconciler reconciles a S3Server object
@@ -42,6 +41,27 @@ type S3ServerReconciler struct {
 	Scheme          *runtime.Scheme
 	logger          *zap.SugaredLogger
 	S3ClientFactory s3client.S3ClientFactory
+}
+
+func (r *S3ServerReconciler) HandleError(s3Server *s3oditservicesv1alpha1.S3Server, err error) (ctrl.Result, error) {
+	r.logger.Errorw("Failed to reconcile s3Server", "name", s3Server.Name, "namespace", s3Server.Namespace, "error", err)
+	s3Server.Status = s3oditservicesv1alpha1.S3ServerStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:             s3oditservicesv1alpha1.StateFailed,
+			LastAction:        s3Server.Status.LastAction,
+			LastMessage:       fmt.Sprintf("Failed to reconcile s3Server: %v", err),
+			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    s3Server.Status.CurrentRetries + 1,
+		},
+		Online: s3Server.Status.Online,
+	}
+	updateErr := r.Status().Update(context.Background(), s3Server)
+	if updateErr != nil {
+		r.logger.Errorw("Failed to update s3Server status", "name", s3Server.Name, "namespace", s3Server.Namespace, "error", updateErr)
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+	}
+	r.logger.Infow("Requeue s3Server", "name", s3Server.Name, "namespace", s3Server.Namespace)
+	return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 }
 
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3servers,verbs=get;list;watch;create;update;patch;delete
@@ -56,47 +76,29 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	err := r.Get(ctx, req.NamespacedName, s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Server resource", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-			Type:    s3oditservicesv1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  s3oditservicesv1alpha1.ReasonNotFound,
-			Message: "S3Server resource not found",
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		})
-		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Server, err)
 	}
 
-	s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-		Type:    s3oditservicesv1alpha1.ConditionReconciling,
-		Status:  metav1.ConditionUnknown,
-		Reason:  s3oditservicesv1alpha1.ConditionReconciling,
-		Message: fmt.Sprintf("Reconciling S3Server %s", s3Server.Name),
-		LastTransitionTime: metav1.Time{
-			Time: time.Now(),
+	s3Server.Status = s3oditservicesv1alpha1.S3ServerStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:             s3oditservicesv1alpha1.StateReconciling,
+			LastAction:        s3Server.Status.LastAction,
+			LastMessage:       "Reconciling S3Server",
+			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    s3Server.Status.CurrentRetries,
 		},
-	})
+		Online: s3Server.Status.Online,
+	}
+
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Server, err)
 	}
 
 	minioClient, err := r.S3ClientFactory.NewClient(*s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to create Minio client for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
-		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-			Type:    s3oditservicesv1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  err.Error(),
-			Message: fmt.Sprintf("Failed to create Minio client: %v", err),
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		})
-		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Server, err)
 	}
 
 	minioClient.HealthCheck(1 * time.Second)
@@ -105,35 +107,25 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	minioOnline := minioClient.IsOnline()
 	if !minioOnline {
 		r.logger.Errorw("Minio server is offline for S3Server", "name", req.Name, "namespace", req.Namespace)
-		s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-			Type:    s3oditservicesv1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  s3oditservicesv1alpha1.ReasonOffline,
-			Message: "Minio server is offline",
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		})
 		s3Server.Status.Online = false
-		r.Status().Update(ctx, s3Server)
-		return ctrl.Result{Requeue: false}, fmt.Errorf("minio server is offline")
+		return r.HandleError(s3Server, fmt.Errorf("minio server is offline"))
 	}
 
 	r.logger.Infow("Finished reconciling S3Server", "name", req.Name, "namespace", req.Namespace)
-	s3Server.Status.Conditions = append(s3Server.Status.Conditions, metav1.Condition{
-		Type:    s3oditservicesv1alpha1.ConditionReady,
-		Status:  metav1.ConditionTrue,
-		Reason:  metav1.StatusSuccess,
-		Message: "S3Server is ready",
-		LastTransitionTime: metav1.Time{
-			Time: time.Now(),
+	s3Server.Status = s3oditservicesv1alpha1.S3ServerStatus{
+		CrStatus: s3oditservicesv1alpha1.CrStatus{
+			State:             s3oditservicesv1alpha1.StateSuccess,
+			LastAction:        s3Server.Status.LastAction,
+			LastMessage:       "S3Server reconciled",
+			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    0,
 		},
-	})
-	s3Server.Status.Online = true
+		Online: true,
+	}
 	err = r.Status().Update(ctx, s3Server)
 	if err != nil {
 		r.logger.Errorw("Failed to update S3Server status", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+		return r.HandleError(s3Server, err)
 	}
 
 	return ctrl.Result{
