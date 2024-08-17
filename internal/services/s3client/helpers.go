@@ -3,15 +3,13 @@ package s3client
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/odit-services/s3ops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1alpha1.S3Server, metav1.Condition, error) {
+func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1alpha1.S3Server, error) {
 	ctx := context.Background()
 
 	s3Server := &v1alpha1.S3Server{}
@@ -20,20 +18,14 @@ func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1
 		Name:      serverRef.Name,
 	}, s3Server)
 	if err != nil {
-		return nil, metav1.Condition{
-			Type:               v1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             v1alpha1.ReasonNotFound,
-			Message:            "S3Server resource not found",
-			LastTransitionTime: metav1.Now(),
-		}, err
+		return nil, err
 	}
 
 	if s3Server.Spec.Auth.ExistingSecretRef != "" {
 		secret := &corev1.Secret{}
 		err := r.Get(ctx, client.ObjectKey{Namespace: s3Server.Namespace, Name: s3Server.Spec.Auth.ExistingSecretRef}, secret)
 		if err != nil {
-			return &v1alpha1.S3Server{}, metav1.Condition{}, err
+			return &v1alpha1.S3Server{}, err
 		}
 
 		if s3Server.Spec.Auth.AccessKeySecretKey == "" {
@@ -47,69 +39,41 @@ func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1
 		s3Server.Spec.Auth.SecretKey = string(secret.Data[s3Server.Spec.Auth.SecretKeySecretKey])
 	}
 
-	return s3Server, metav1.Condition{}, nil
+	return s3Server, nil
 }
 
-func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3Client, metav1.Condition, error) {
-	s3Server, condition, err := getS3ServerObject(serverRef, r)
+func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3Client, error) {
+	s3Server, err := getS3ServerObject(serverRef, r)
 	if err != nil {
-		return nil, condition, err
+		return nil, err
 	}
 
 	if !s3Server.Status.Online {
-		return nil, metav1.Condition{
-			Type:               v1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             v1alpha1.ReasonOffline,
-			Message:            "S3Server is offline",
-			LastTransitionTime: metav1.Now(),
-		}, fmt.Errorf("S3Server is offline")
+		return nil, fmt.Errorf("S3Server is offline")
 	}
 
 	s3Client, err := factory.NewClient(*s3Server)
 	if err != nil {
-		return nil, metav1.Condition{
-			Type:    v1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  err.Error(),
-			Message: fmt.Sprintf("Failed to create S3 client: %v", err),
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		}, err
+		return nil, err
 	}
 
-	return s3Client, metav1.Condition{}, nil
+	return s3Client, nil
 }
 
-func GetS3AdminClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3AdminClient, metav1.Condition, error) {
-	s3Server, condition, err := getS3ServerObject(serverRef, r)
+func GetS3AdminClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3AdminClient, error) {
+	s3Server, err := getS3ServerObject(serverRef, r)
 	if err != nil {
-		return nil, condition, err
+		return nil, err
 	}
 
 	if !s3Server.Status.Online {
-		return nil, metav1.Condition{
-			Type:               v1alpha1.ConditionFailed,
-			Status:             metav1.ConditionFalse,
-			Reason:             v1alpha1.ReasonOffline,
-			Message:            "S3Server is offline",
-			LastTransitionTime: metav1.Now(),
-		}, fmt.Errorf("S3Server is offline")
+		return nil, fmt.Errorf("S3Server is offline")
 	}
 
 	s3AdminClient, err := factory.NewAdminClient(*s3Server)
 	if err != nil {
-		return nil, metav1.Condition{
-			Type:    v1alpha1.ConditionFailed,
-			Status:  metav1.ConditionFalse,
-			Reason:  err.Error(),
-			Message: fmt.Sprintf("Failed to create S3 admin client: %v", err),
-			LastTransitionTime: metav1.Time{
-				Time: time.Now(),
-			},
-		}, err
+		return nil, err
 	}
 
-	return s3AdminClient, metav1.Condition{}, nil
+	return s3AdminClient, nil
 }
