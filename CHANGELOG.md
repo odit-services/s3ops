@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.4.0](#v0.4.0)
 * [v0.3.1](#v0.3.1)
 * [v0.3.0](#v0.3.0)
 * [v0.2.3](#v0.2.3)
@@ -14,6 +15,34 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.4.0"></a>
+### [v0.4.0](https://github.com/odit-services/s3ops/compare/v0.3.1...v0.4.0)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **S3bucket_controller:** Implement user creation
+* **api:** Added createuserfromtemplate for automagic user+policy generation
+* **s3bucket_controller:** Added policy template for rw
+
+#### 🩹 Fixes
+
+* **api:** Allow empty as enum value
+
+#### ✅ Tests
+
+* **s3bucket_controller:** Test deletion of sample users
+* **s3bucket_controller:** Test for call of secondary functions on user create
+* **s3bucket_controller:** Test for correct policy
+* **s3bucket_controller:** Test for user+policy creation
+
 
 <a name="v0.3.1"></a>
 ### [v0.3.1](https://github.com/odit-services/s3ops/compare/v0.3.0...v0.3.1)
