@@ -22,7 +22,16 @@ spec:
     singular: s3bucket
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: The current state of the resource
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: The last action taken on the resource
+      jsonPath: .status.lastAction
+      name: LastAction
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3Bucket is the Schema for the s3buckets API
@@ -109,7 +118,20 @@ spec:
     singular: s3policy
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Whether the resource has been created
+      jsonPath: .status.created
+      name: Created
+      type: boolean
+    - description: The current state of the resource
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: The last action taken on the resource
+      jsonPath: .status.lastAction
+      name: LastAction
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3Policy is the Schema for the s3policies API
@@ -187,7 +209,20 @@ spec:
     singular: s3server
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Is the server online
+      jsonPath: .status.online
+      name: Online
+      type: boolean
+    - description: The current state of the resource
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: The last action taken on the resource
+      jsonPath: .status.lastAction
+      name: LastAction
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3Server is the Schema for the s3servers API
@@ -280,7 +315,20 @@ spec:
     singular: s3user
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Whether the resource has been created
+      jsonPath: .status.created
+      name: Created
+      type: boolean
+    - description: The current state of the resource
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: The last action taken on the resource
+      jsonPath: .status.lastAction
+      name: LastAction
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3User is the Schema for the s3users API
@@ -409,6 +457,18 @@ rules:
   verbs:
   - create
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - s3.odit.services
   resources:
@@ -866,7 +926,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.3.0
+        image: ghcr.io/odit-services/s3ops:v0.3.1
         livenessProbe:
           httpGet:
             path: /healthz
