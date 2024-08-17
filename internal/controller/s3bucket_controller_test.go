@@ -611,5 +611,87 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				}, &s3Bucket)).To(HaveOccurred())
 			})
 		})
+		When("A new valid s3bucket is deleted with user generation enabled from template", func() {
+			var err error
+			var s3Bucket s3oditservicesv1alpha1.S3Bucket
+			var s3Policy s3oditservicesv1alpha1.S3Policy
+			var s3User s3oditservicesv1alpha1.S3User
+
+			BeforeAll(func() {
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3-bucket-deleteme-withuser",
+					Namespace: "default",
+				}
+				s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3BucketSpec{
+						ServerRef: s3oditservicesv1alpha1.ServerReference{
+							Name:      s3Server.Name,
+							Namespace: s3Server.Namespace,
+						},
+						Region:                 "eu-west-1",
+						ObjectLocking:          false,
+						CreateUserFromTemplate: "readwrite",
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+
+				policyReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
+				s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
+
+				userReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
+				s3MockEnv.ExistingUsers = append(s3MockEnv.ExistingUsers, s3User.Name)
+
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				Expect(k8sClient.Delete(ctx, &s3Bucket)).To(Succeed())
+				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				policyReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				userReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+			})
+
+			It("Should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("Should have deleted the s3bucket", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Bucket.Name,
+					Namespace: s3Bucket.Namespace,
+				}, &s3Bucket)).To(HaveOccurred())
+			})
+			It("Should have deleted the s3policy", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Policy.Name,
+					Namespace: s3Policy.Namespace,
+				}, &s3Policy)).To(HaveOccurred())
+			})
+			It("Should have deleted the s3user", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3User.Name,
+					Namespace: s3User.Namespace,
+				}, &s3User)).To(HaveOccurred())
+			})
+		})
 	})
 })
