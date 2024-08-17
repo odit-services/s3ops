@@ -43,4 +43,5 @@ type CrStatus struct {
 	LastAction         string `json:"lastAction,omitempty" yaml:"lastAction,omitempty"`
 	LastMessage        string `json:"lastMessage,omitempty" yaml:"lastMessage,omitempty"`
 	LastTransitionTime string `json:"lastTransitionTime,omitempty" yaml:"lastTransitionTime,omitempty"`
+	CurrentRetries     int    `json:"currentRetries,omitempty" yaml:"currentRetries,omitempty"`
 }

@@ -67,6 +67,8 @@ spec:
             properties:
               created:
                 type: boolean
+              currentRetries:
+                type: integer
               lastAction:
                 type: string
               lastMessage:

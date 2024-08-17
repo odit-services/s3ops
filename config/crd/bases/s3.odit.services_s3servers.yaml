@@ -135,6 +135,8 @@ spec:
                   - type
                   type: object
                 type: array
+              currentRetries:
+                type: integer
               lastAction:
                 type: string
               lastMessage:
