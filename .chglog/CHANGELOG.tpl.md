@@ -7,10 +7,8 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 {{ range .Versions -}}
 * [{{ .Tag.Name }}](#{{ .Tag.Name }})
-{{ end -}}
-
+{{ end }}
 ## Changes
-
 {{ range .Versions }}
 <a name="{{ .Tag.Name }}"></a>
 ### {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}{{ .Tag.Name }}{{ end }}
