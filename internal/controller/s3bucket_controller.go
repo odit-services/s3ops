@@ -49,9 +49,11 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 	r.logger.Errorw("Failed to reconcile S3Bucket", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
-			State:       s3oditservicesv1alpha1.StateFailed,
-			LastAction:  s3Bucket.Status.LastAction,
-			LastMessage: fmt.Sprintf("Failed to reconcile S3Bucket: %v", err),
+			State:             s3oditservicesv1alpha1.StateFailed,
+			LastAction:        s3Bucket.Status.LastAction,
+			LastMessage:       fmt.Sprintf("Failed to reconcile S3Bucket: %v", err),
+			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    s3Bucket.Status.CurrentRetries + 1,
 		},
 	}
 	err = r.Status().Update(context.Background(), s3Bucket)
@@ -186,9 +188,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
-			State:       s3oditservicesv1alpha1.StateSuccess,
-			LastAction:  s3Bucket.Status.LastAction,
-			LastMessage: "S3Bucket is ready",
+			State:             s3oditservicesv1alpha1.StateSuccess,
+			LastAction:        s3Bucket.Status.LastAction,
+			LastMessage:       "S3Bucket is ready",
+			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    0,
 		},
 		Created: true,
 		Name:    bucketName,
