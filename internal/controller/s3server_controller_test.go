@@ -91,8 +91,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should set the status condition to type online", func() {
 					Expect(s3Server.Status.Online).To(BeTrue())
@@ -135,8 +138,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				It("should return an error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-				It("should set the status condition to type failed", func() {
-					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				It("should set the status state to failed", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should set the online status to false", func() {
 					Expect(s3Server.Status.Online).To(BeFalse())
@@ -179,8 +185,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				It("should return an error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-				It("should set the status condition to type failed", func() {
-					Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+				It("should set the status state to failed", func() {
+					Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should set the online status to false", func() {
 					Expect(s3Server.Status.Online).To(BeFalse())
@@ -234,8 +243,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			It("should return a result with requeue set higher than 0", func() {
 				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 			})
-			It("should set the status condition to type ready", func() {
-				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+			It("should set the status state to success", func() {
+				Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+			})
+			It("should set the status last reconcile time", func() {
+				Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 			})
 			It("should set the online status to true", func() {
 				Expect(s3Server.Status.Online).To(BeTrue())
@@ -287,8 +299,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			It("should return a result with requeue set higher than 0", func() {
 				Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 			})
-			It("should set the status condition to type ready", func() {
-				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+			It("should set the status state to success", func() {
+				Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+			})
+			It("should set the status last reconcile time", func() {
+				Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 			})
 			It("should set the online status to true", func() {
 				Expect(s3Server.Status.Online).To(BeTrue())
@@ -335,8 +350,11 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 			It("should return an error", func() {
 				Expect(err).To(HaveOccurred())
 			})
-			It("should set the status condition to type failed", func() {
-				Expect(s3Server.Status.Conditions[len(s3Server.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionFailed))
+			It("should set the status state to failed", func() {
+				Expect(s3Server.Status.State).To(Equal(s3oditservicesv1alpha1.StateFailed))
+			})
+			It("should set the status last reconcile time", func() {
+				Expect(s3Server.Status.LastReconcileTime).ToNot(BeEmpty())
 			})
 			It("should set the online status to false", func() {
 				Expect(s3Server.Status.Online).To(BeFalse())
@@ -374,11 +392,16 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
 
 				Expect(k8sClient.Delete(ctx, &s3Server)).To(Succeed())
-				err = k8sClient.Get(ctx, nameSpacedName, &s3Server)
 			})
 
+			It("should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
 			It("should no longer exist in k8s", func() {
-				Expect(err).To(HaveOccurred())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Server.Name,
+					Namespace: s3Server.Namespace,
+				}, &s3Server)).To(HaveOccurred())
 			})
 		})
 	})
