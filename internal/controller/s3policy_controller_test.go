@@ -175,8 +175,11 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3Policy.Status.Conditions[len(s3Policy.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3Policy.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Policy.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should call the s3client exists function once", func() {
 					Expect(s3MockSpy.PolicyExistsCalled).To(Equal(1))
@@ -269,8 +272,11 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 				It("should return a result with requeue set higher than 0", func() {
 					Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 				})
-				It("should set the status condition to type ready", func() {
-					Expect(s3Policy.Status.Conditions[len(s3Policy.Status.Conditions)-1].Type).To(Equal(s3oditservicesv1alpha1.ConditionReady))
+				It("should set the status state to success", func() {
+					Expect(s3Policy.Status.State).To(Equal(s3oditservicesv1alpha1.StateSuccess))
+				})
+				It("should set the status last reconcile time", func() {
+					Expect(s3Policy.Status.LastReconcileTime).ToNot(BeEmpty())
 				})
 				It("should call the s3client exists function once", func() {
 					Expect(s3MockSpy.PolicyExistsCalled).To(Equal(1))
