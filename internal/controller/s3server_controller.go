@@ -69,6 +69,7 @@ func (r *S3ServerReconciler) HandleError(s3Server *s3oditservicesv1alpha1.S3Serv
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3servers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3servers/finalizers,verbs=update
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
+// +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch
 
 func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.logger.Infow("Reconciling S3Server", "name", req.Name, "namespace", req.Namespace)

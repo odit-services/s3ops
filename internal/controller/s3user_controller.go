@@ -69,9 +69,10 @@ func (r *S3UserReconciler) HandleError(s3User *s3oditservicesv1alpha1.S3User, er
 	return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 }
 
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3users,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3users/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3users/finalizers,verbs=update
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3users,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3users/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3users/finalizers,verbs=update
+// +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 

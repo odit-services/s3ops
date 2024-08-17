@@ -64,9 +64,9 @@ func (r *S3PolicyReconciler) HandleError(s3Policy *s3oditservicesv1alpha1.S3Poli
 	return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 }
 
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3policies,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3policies/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=s3.odit.services,resources=s3policies/finalizers,verbs=update
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3policies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3policies/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=s3.odit.services,resources=s3policies/finalizers,verbs=update
 
 func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
