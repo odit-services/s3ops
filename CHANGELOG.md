@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.3.1](#v0.3.1)
 * [v0.3.0](#v0.3.0)
 * [v0.2.3](#v0.2.3)
 * [v0.2.2](#v0.2.2)
@@ -13,6 +14,30 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.3.1"></a>
+### [v0.3.1](https://github.com/odit-services/s3ops/compare/v0.3.0...v0.3.1)
+
+> 2024-08-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 📖 Documentation
+
+* Added some badges to the readme
+
+#### 🚀 Enhancements
+
+* **api:** Set printcolumns
+* **controller:** Update lastaction according to the current state
+
+#### 🩹 Fixes
+
+* **rbac:** RBAC permissions for secrets
+
 
 <a name="v0.3.0"></a>
 ### [v0.3.0](https://github.com/odit-services/s3ops/compare/v0.2.3...v0.3.0)
