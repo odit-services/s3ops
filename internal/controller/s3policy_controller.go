@@ -85,6 +85,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastAction:        s3Policy.Status.LastAction,
 			LastMessage:       fmt.Sprintf("Reconciling S3Policy %s", s3Policy.Name),
 			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    s3Policy.Status.CurrentRetries,
 		},
 		Created: s3Policy.Status.Created,
 	}

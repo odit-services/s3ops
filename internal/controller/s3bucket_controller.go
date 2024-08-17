@@ -83,8 +83,10 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
-			State:      s3oditservicesv1alpha1.StatePending,
-			LastAction: s3oditservicesv1alpha1.ActionUnknown,
+			State:             s3oditservicesv1alpha1.StatePending,
+			LastAction:        s3oditservicesv1alpha1.ActionUnknown,
+			CurrentRetries:    s3Bucket.Status.CurrentRetries,
+			LastReconcileTime: time.Now().Format(time.RFC3339),
 		},
 		Name:    s3Bucket.Status.Name,
 		Created: s3Bucket.Status.Created,
@@ -144,8 +146,9 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.logger.Infow("Deleting s3Bucket", "name", req.Name, "namespace", req.Namespace)
 		s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 			CrStatus: s3oditservicesv1alpha1.CrStatus{
-				State:      s3oditservicesv1alpha1.StateReconciling,
-				LastAction: s3oditservicesv1alpha1.ActionDelete,
+				State:          s3oditservicesv1alpha1.StateReconciling,
+				LastAction:     s3oditservicesv1alpha1.ActionDelete,
+				CurrentRetries: s3Bucket.Status.CurrentRetries,
 			},
 			Name:    s3Bucket.Status.Name,
 			Created: s3Bucket.Status.Created,

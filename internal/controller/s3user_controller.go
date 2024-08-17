@@ -90,6 +90,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			LastAction:        s3User.Status.LastAction,
 			LastMessage:       fmt.Sprintf("Reconciling S3User %s", s3User.Name),
 			LastReconcileTime: time.Now().Format(time.RFC3339),
+			CurrentRetries:    s3User.Status.CurrentRetries,
 		},
 		SecretRef: s3User.Status.SecretRef,
 		Created:   s3User.Status.Created,
