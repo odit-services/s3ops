@@ -567,6 +567,13 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 					Namespace: s3Bucket.Namespace,
 				}, &s3Bucket)).To(HaveOccurred())
 			})
+			It("should have deleted the secret", func() {
+				secret := &corev1.Secret{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
+					Namespace: s3Bucket.Namespace,
+				}, secret)).ToNot(Succeed())
+			})
 		})
 		When("A valid s3bucket is soft-deleted", func() {
 			var err error
