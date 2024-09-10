@@ -20,11 +20,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -212,6 +214,29 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Bucket, err)
 		}
 		s3Bucket.Status.Created = true
+		s3Server, err := s3client.GetS3ServerObject(s3Bucket.Spec.ServerRef, r.Client)
+		if err != nil {
+			r.logger.Errorw("Failed to get S3Server object", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
+
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
+				Namespace: req.Namespace,
+			},
+			StringData: map[string]string{
+				"bucketname": bucketName,
+				"endpoint":   s3Server.Spec.Endpoint,
+				"region":     s3Bucket.Spec.Region,
+				"tls":        strconv.FormatBool(s3Server.Spec.TLS),
+			},
+		}
+		err = r.Create(ctx, secret)
+		if err != nil {
+			r.logger.Errorw("Failed to create secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
 	} else {
 		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
 		err = r.Status().Update(ctx, s3Bucket)
