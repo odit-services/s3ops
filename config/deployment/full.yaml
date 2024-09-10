@@ -931,7 +931,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.4.3
+        image: ghcr.io/odit-services/s3ops:v0.5.0
         name: manager
         resources:
           limits:
