@@ -232,6 +232,19 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				It("Should set the status name field to a name matching the generation spec", func() {
 					Expect(s3Bucket.Status.Name).To(MatchRegexp("test-s3-bucket-nonexistent-default-.+"))
 				})
+				It("Should create a secret containing the connection details", func() {
+					secret := &corev1.Secret{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
+						Namespace: s3Bucket.Namespace,
+					}, secret)).To(Succeed())
+
+					Expect(string(secret.Data["bucketname"])).To(MatchRegexp("test-s3-bucket-nonexistent-default-.+"))
+					Expect(string(secret.Data["endpoint"])).To(Equal(s3Server.Spec.Endpoint))
+					Expect(string(secret.Data["region"])).To(Equal(s3Bucket.Spec.Region))
+					Expect(string(secret.Data["tls"])).To(Equal(s3Server.Spec.TLS))
+
+				})
 			})
 			When("A new valid s3bucket is created with a valid s3server that uses secretauth", func() {
 				var err error
