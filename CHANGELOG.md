@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.5.1](#v0.5.1)
 * [v0.5.0](#v0.5.0)
 * [v0.4.3](#v0.4.3)
 * [v0.4.2](#v0.4.2)
@@ -19,6 +20,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.5.1"></a>
+### [v0.5.1](https://github.com/odit-services/s3ops/compare/v0.5.0...v0.5.1)
+
+> 2024-09-10
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3bucket_controller:** Also create secret if it does not already exist
+
 
 <a name="v0.5.0"></a>
 ### [v0.5.0](https://github.com/odit-services/s3ops/compare/v0.4.3...v0.5.0)
