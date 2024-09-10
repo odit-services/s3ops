@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1alpha1.S3Server, error) {
+func GetS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1alpha1.S3Server, error) {
 	ctx := context.Background()
 
 	s3Server := &v1alpha1.S3Server{}
@@ -43,7 +43,7 @@ func getS3ServerObject(serverRef v1alpha1.ServerReference, r client.Client) (*v1
 }
 
 func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3Client, error) {
-	s3Server, err := getS3ServerObject(serverRef, r)
+	s3Server, err := GetS3ServerObject(serverRef, r)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func GetS3ClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3Clien
 }
 
 func GetS3AdminClientFromS3Server(serverRef v1alpha1.ServerReference, factory S3ClientFactory, r client.Client) (S3AdminClient, error) {
-	s3Server, err := getS3ServerObject(serverRef, r)
+	s3Server, err := GetS3ServerObject(serverRef, r)
 	if err != nil {
 		return nil, err
 	}
