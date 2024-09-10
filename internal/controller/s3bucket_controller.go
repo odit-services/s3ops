@@ -109,6 +109,12 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	s3Server, err := s3client.GetS3ServerObject(s3Bucket.Spec.ServerRef, r.Client)
+	if err != nil {
+		r.logger.Errorw("Failed to get S3Server object", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return r.HandleError(s3Bucket, err)
+	}
+
 	s3Client, err := s3client.GetS3ClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
 	if err != nil {
 		r.logger.Errorw("Failed to get S3Client from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
@@ -227,11 +233,6 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Bucket, err)
 		}
 		s3Bucket.Status.Created = true
-		s3Server, err := s3client.GetS3ServerObject(s3Bucket.Spec.ServerRef, r.Client)
-		if err != nil {
-			r.logger.Errorw("Failed to get S3Server object", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3Bucket, err)
-		}
 
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -252,6 +253,31 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	} else {
 		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
+
+		var secret *corev1.Secret
+		_, err = getSecret(ctx, r.Client, req.Namespace, fmt.Sprintf("%s-bkt", s3Bucket.Name))
+		if err != nil {
+			r.logger.Warnw("Failed to get secret - create", "name", req.Name, "namespace", req.Namespace, "error", err)
+			secret = &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
+					Namespace: req.Namespace,
+				},
+				StringData: map[string]string{
+					"bucketname": bucketName,
+					"endpoint":   s3Server.Spec.Endpoint,
+					"region":     s3Bucket.Spec.Region,
+					"tls":        strconv.FormatBool(s3Server.Spec.TLS),
+				},
+			}
+			err = r.Create(ctx, secret)
+			if err != nil {
+				r.logger.Errorw("Failed to create secret - create", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Created secret for bucket", "name", req.Name, "namespace", req.Namespace)
+		}
+
 		err = r.Status().Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to update s3Bucket status", "name", req.Name, "namespace", req.Namespace, "error", err)
