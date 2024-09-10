@@ -167,6 +167,19 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 		}
 
+		secret, err := getSecret(ctx, r.Client, req.Namespace, fmt.Sprintf("%s-bkt", s3Bucket.Name))
+		if err != nil {
+			r.logger.Warnw("Failed to get secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+		}
+		if secret != nil {
+			r.logger.Debugw("Removing secret", "name", req.Name, "namespace", req.Namespace)
+			err = r.Client.Delete(ctx, secret)
+			if err != nil {
+				r.logger.Errorw("Failed to remove secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+		}
+
 		if s3Bucket.Spec.CreateUserFromTemplate != "" {
 			r.logger.Debugw("Removing policy", "name", req.Name, "namespace", req.Namespace)
 			err := r.Client.Delete(ctx, &s3oditservicesv1alpha1.S3Policy{
@@ -194,7 +207,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 
 		controllerutil.RemoveFinalizer(s3Bucket, "s3.odit.services/bucket")
-		err := r.Update(ctx, s3Bucket)
+		err = r.Update(ctx, s3Bucket)
 		if err != nil {
 			r.logger.Errorw("Failed to remove finalizer from s3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
