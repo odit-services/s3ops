@@ -33,7 +33,8 @@ type S3PolicySpec struct {
 // S3PolicyStatus defines the observed state of S3Policy
 type S3PolicyStatus struct {
 	CrStatus `json:",inline" yaml:",inline"`
-	Created  bool `json:"created,omitempty"`
+	Created  bool   `json:"created,omitempty"`
+	Name     string `json:"name,omitempty"`
 }
 
 //+kubebuilder:object:root=true
