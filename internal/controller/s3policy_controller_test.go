@@ -179,6 +179,9 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 				It("should call the s3client make function once", func() {
 					Expect(s3MockSpy.MakePolicyCalled).To(Equal(1))
 				})
+				It("Should set the status name field to a name matching the generation spec", func() {
+					Expect(s3Policy.Status.Name).To(MatchRegexp("test-s3-policy-nonexistent-default-.+"))
+				})
 			})
 		})
 		Describe("Testing the reconciliation of a existing s3policy", func() {
