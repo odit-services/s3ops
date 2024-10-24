@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.6.0](#v0.6.0)
 * [v0.5.1](#v0.5.1)
 * [v0.5.0](#v0.5.0)
 * [v0.4.3](#v0.4.3)
@@ -20,6 +21,32 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.6.0"></a>
+### [v0.6.0](https://github.com/odit-services/s3ops/compare/v0.5.1...v0.6.0)
+
+> 2024-10-24
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **api:** Add yaml to status
+* **api:** Added new Name field to s3policy
+* **s3policy_controller:** Implement policy name generation
+
+#### 💅 Refactors
+
+* **s3user_controller:** Switch to policy name generation
+
+#### ✅ Tests
+
+* **s3policy_controller:** Updated tests to match new naming rules
+* **s3policy_controller:** Test for new policy status name field
+
 
 <a name="v0.5.1"></a>
 ### [v0.5.1](https://github.com/odit-services/s3ops/compare/v0.5.0...v0.5.1)
