@@ -230,23 +230,31 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	for _, policyRef := range s3User.Spec.PolicyRefs {
 		r.logger.Debugw("Applying policy to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
-		policyExists, err := s3AdminClient.PolicyExists(ctx, policyRef)
+
+		policyCR := &s3oditservicesv1alpha1.S3Policy{}
+		err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: policyRef}, policyCR)
 		if err != nil {
-			r.logger.Errorw("Failed to check if policy exists", "name", req.Name, "namespace", req.Namespace, "error", err)
+			r.logger.Errorw("Failed to get S3Policy resource", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+
+		policyExists, err := s3AdminClient.PolicyExists(ctx, policyCR.Status.Name)
+		if err != nil {
+			r.logger.Errorw("Failed to check if policy exists", "name", req.Name, "namespace", req.Namespace, "error", err, "policy", policyRef, "realName", policyCR.Status.Name)
 			return r.HandleError(s3User, err)
 		}
 
 		if !policyExists {
-			r.logger.Errorw("Policy does not exist", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
+			r.logger.Errorw("Policy does not exist", "name", req.Name, "namespace", req.Namespace, "policy", policyRef, "realName", policyCR.Status.Name)
 			return r.HandleError(s3User, fmt.Errorf("policy does not exist"))
 		}
 
-		err = s3AdminClient.ApplyPolicyToUser(ctx, policyRef, userCreds.AccessKey)
+		err = s3AdminClient.ApplyPolicyToUser(ctx, policyCR.Status.Name, userCreds.AccessKey)
 		if err != nil {
 			r.logger.Errorw("Failed to apply policy to user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
 		}
-		r.logger.Debugw("Policy applied to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef)
+		r.logger.Debugw("Policy applied to user", "name", req.Name, "namespace", req.Namespace, "policy", policyRef, "realName", policyCR.Status.Name)
 	}
 
 	r.logger.Infow("Finished reconciling S3User", "name", req.Name, "namespace", req.Namespace)

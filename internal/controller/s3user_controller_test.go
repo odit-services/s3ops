@@ -46,6 +46,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 		testScheme := scheme.Scheme
 		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3Server{})
 		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3User{})
+		testScheme.AddKnownTypes(s3oditservicesv1alpha1.GroupVersion, &s3oditservicesv1alpha1.S3Policy{})
 		testReconciler = &S3UserReconciler{
 			Client: k8sClient,
 			Scheme: testScheme,
@@ -56,6 +57,15 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		serverReconciler := &S3ServerReconciler{
+			Client: k8sClient,
+			Scheme: testScheme,
+			logger: zap.NewNop().Sugar(),
+			S3ClientFactory: &mocks.S3ClientFactoryMocked{
+				S3ClientMockEnv: &s3MockEnv,
+				S3ClientMockSpy: &s3MockSpy,
+			},
+		}
+		s3PolicyReconciler := &S3PolicyReconciler{
 			Client: k8sClient,
 			Scheme: testScheme,
 			logger: zap.NewNop().Sugar(),
@@ -109,6 +119,34 @@ var _ = Describe("S3User Controller", Ordered, func() {
 				Namespace: s3ServerBroken.Namespace,
 			},
 		})
+
+		By("creating a test s3 policy")
+		s3Policy := &s3oditservicesv1alpha1.S3Policy{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      s3MockEnv.ExistingPolicies[0],
+				Namespace: "default",
+			},
+			Spec: s3oditservicesv1alpha1.S3PolicySpec{
+				ServerRef: s3oditservicesv1alpha1.ServerReference{
+					Name:      s3Server.Name,
+					Namespace: s3Server.Namespace,
+				},
+				PolicyContent: s3MockEnv.ExistingPolicies[0],
+			},
+		}
+		Expect(k8sClient.Create(ctx, s3Policy)).To(Succeed())
+		s3PolicyReconciler.Reconcile(ctx, ctrl.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      s3Policy.Name,
+				Namespace: s3Policy.Namespace,
+			},
+		})
+		Expect(k8sClient.Get(ctx, types.NamespacedName{
+			Name:      s3Policy.Name,
+			Namespace: s3Policy.Namespace,
+		}, s3Policy)).To(Succeed())
+
+		s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Status.Name)
 	})
 	Describe("Testing the reconcoile function", func() {
 		Describe("Testing the reconciliation of a new s3user", func() {
