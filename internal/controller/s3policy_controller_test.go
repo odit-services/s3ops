@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"log"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -180,6 +181,8 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 					Expect(s3MockSpy.MakePolicyCalled).To(Equal(1))
 				})
 				It("Should set the status name field to a name matching the generation spec", func() {
+					log.Printf("Status name: %s", s3Policy.Status.Name)
+					log.Printf("Status: %v", s3Policy.Status)
 					Expect(s3Policy.Status.Name).To(MatchRegexp("test-s3-policy-nonexistent-default-.+"))
 				})
 			})
@@ -234,7 +237,7 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
 
 					s3MockSpy = mocks.S3ClientMockSpy{}
-					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
+					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Status.Name)
 					s3Policy.Spec.PolicyContent = fmt.Sprintf(`
 						{
 							"Version": "2012-10-17",
@@ -330,7 +333,7 @@ var _ = Describe("S3Policy Controller", Ordered, func() {
 					})
 					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
 					s3MockSpy = mocks.S3ClientMockSpy{}
-					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
+					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Status.Name)
 
 					Expect(k8sClient.Delete(ctx, &s3Policy)).To(Succeed())
 					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
