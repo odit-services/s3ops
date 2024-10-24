@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
 )
@@ -54,6 +55,7 @@ func (r *S3PolicyReconciler) HandleError(s3Policy *s3oditservicesv1alpha1.S3Poli
 			CurrentRetries:    s3Policy.Status.CurrentRetries + 1,
 		},
 		Created: s3Policy.Status.Created,
+		Name:    s3Policy.Status.Name,
 	}
 	updateErr := r.Status().Update(context.Background(), s3Policy)
 	if updateErr != nil {
@@ -88,6 +90,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			CurrentRetries:    s3Policy.Status.CurrentRetries,
 		},
 		Created: s3Policy.Status.Created,
+		Name:    s3Policy.Status.Name,
 	}
 	err = r.Status().Update(ctx, s3Policy)
 	if err != nil {
@@ -110,7 +113,34 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return r.HandleError(s3Policy, err)
 	}
 
-	policyExists, err := s3AdminClient.PolicyExists(ctx, s3Policy.Name)
+	var policyName string
+	if s3Policy.Status.Name != "" {
+		policyName = s3Policy.Status.Name
+	} else {
+		r.logger.Debugw("Generating policy name", "name", s3Policy.Name, "namespace", s3Policy.Namespace)
+		nanoID, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 21)
+		if err != nil {
+			r.logger.Errorw("Failed to generate bucket name", "name", s3Policy.Name, "error", err)
+			return r.HandleError(s3Policy, err)
+		}
+		policyPrefix := fmt.Sprintf("%s-%s", s3Policy.Name, s3Policy.Namespace)
+		var truncateAt int
+		if len(policyPrefix) > 39 {
+			truncateAt = 39
+		} else {
+			truncateAt = len(policyPrefix)
+		}
+		policyName = fmt.Sprintf("%s-%s", policyPrefix[0:truncateAt], nanoID)
+	}
+	s3Policy.Status.Name = policyName
+
+	err = r.Status().Update(ctx, s3Policy)
+	if err != nil {
+		r.logger.Errorw("Failed to update S3Policy status", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return r.HandleError(s3Policy, err)
+	}
+
+	policyExists, err := s3AdminClient.PolicyExists(ctx, policyName)
 	if err != nil {
 		r.logger.Errorw("Failed to check if policy exists", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3Policy, err)
@@ -128,7 +158,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if !policyExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else {
-			err := s3AdminClient.RemovePolicy(ctx, s3Policy.Name)
+			err := s3AdminClient.RemovePolicy(ctx, policyName)
 			if err != nil {
 				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3Policy, err)
@@ -151,7 +181,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Policy, err)
 		}
 
-		err = s3AdminClient.MakePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
+		err = s3AdminClient.MakePolicy(ctx, policyName, s3Policy.Spec.PolicyContent)
 		if err != nil {
 			r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3Policy, err)
@@ -164,7 +194,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Policy, err)
 		}
 
-		err = s3AdminClient.UpdatePolicy(ctx, s3Policy.Name, s3Policy.Spec.PolicyContent)
+		err = s3AdminClient.UpdatePolicy(ctx, policyName, s3Policy.Spec.PolicyContent)
 		if err != nil {
 			r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3Policy, err)
@@ -180,6 +210,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			LastReconcileTime: time.Now().Format(time.RFC3339),
 		},
 		Created: true,
+		Name:    s3Policy.Status.Name,
 	}
 	err = r.Status().Update(ctx, s3Policy)
 	if err != nil {
