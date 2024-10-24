@@ -34,7 +34,7 @@ type S3PolicySpec struct {
 type S3PolicyStatus struct {
 	CrStatus `json:",inline" yaml:",inline"`
 	Created  bool   `json:"created,omitempty"`
-	Name     string `json:"name,omitempty"`
+	Name     string `json:"name,omitempty" yaml:"name,omitempty"`
 }
 
 //+kubebuilder:object:root=true
