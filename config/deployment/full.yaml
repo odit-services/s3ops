@@ -190,6 +190,8 @@ spec:
                 type: string
               lastReconcileTime:
                 type: string
+              name:
+                type: string
               state:
                 type: string
             type: object
@@ -931,7 +933,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.5.1
+        image: ghcr.io/odit-services/s3ops:v0.6.0
         name: manager
         resources:
           limits:
