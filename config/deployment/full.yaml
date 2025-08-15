@@ -276,6 +276,11 @@ spec:
                 type: object
               endpoint:
                 type: string
+              providerOptions:
+                additionalProperties:
+                  type: string
+                default: {}
+                type: object
               tls:
                 default: true
                 type: boolean
@@ -945,7 +950,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.8.4
+        image: ghcr.io/odit-services/s3ops:v0.8.5
         name: manager
         resources:
           limits:
