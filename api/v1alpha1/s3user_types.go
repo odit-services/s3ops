@@ -38,9 +38,10 @@ type S3UserSpec struct {
 type S3UserStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	CrStatus  `json:",inline" yaml:",inline"`
-	Created   bool   `json:"created,omitempty"`
-	SecretRef string `json:"secretRef,omitempty"`
+	CrStatus     `json:",inline" yaml:",inline"`
+	Created      bool   `json:"created,omitempty"`
+	SecretRef    string `json:"secretRef,omitempty"`
+	ProviderMeta string `json:"providerMeta,omitempty"` // This can be used to store provider-specific metadata, like user ID or ARN
 }
 
 //+kubebuilder:object:root=true
