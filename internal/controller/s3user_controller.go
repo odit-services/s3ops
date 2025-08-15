@@ -198,14 +198,16 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
 		}
+		r.logger.Infow("User created", "name", req.Name, "namespace", req.Namespace, "identifier", identifier, "accessKey", accessKey)
 		secret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
 				Namespace: s3User.Namespace,
 			},
 			StringData: map[string]string{
-				"accessKey": accessKey,
-				"secretKey": secretKey,
+				"accessKey":  accessKey,
+				"secretKey":  secretKey,
+				"identifier": identifier,
 			},
 		}
 		err = createSecret(ctx, r.Client, secret)
