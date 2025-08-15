@@ -278,6 +278,7 @@ spec:
                 default: minio
                 enum:
                 - minio
+                - ionos
                 type: string
             required:
             - auth
@@ -933,7 +934,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.6.0
+        image: ghcr.io/odit-services/s3ops:v0.7.0
         name: manager
         resources:
           limits:
