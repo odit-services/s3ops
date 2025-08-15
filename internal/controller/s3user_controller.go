@@ -117,8 +117,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var secret *corev1.Secret
 	var userCreds struct {
-		AccessKey string
-		SecretKey string
+		AccessKey  string
+		SecretKey  string
+		Identifier string
 	}
 	if s3User.Status.SecretRef != "" {
 		secret, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
@@ -128,11 +129,13 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 
 		userCreds = struct {
-			AccessKey string
-			SecretKey string
+			AccessKey  string
+			SecretKey  string
+			Identifier string
 		}{
-			AccessKey: string(secret.Data["accessKey"]),
-			SecretKey: string(secret.Data["secretKey"]),
+			AccessKey:  string(secret.Data["accessKey"]),
+			SecretKey:  string(secret.Data["secretKey"]),
+			Identifier: string(secret.Data["identifier"]),
 		}
 
 		if s3AdminClient.GetType() != "ionos" && s3User.Status.UserIdentifier == "" {
@@ -145,7 +148,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	userExists, err := s3AdminClient.UserExists(ctx, s3User.Status.UserIdentifier)
+	userExists, err := s3AdminClient.UserExists(ctx, userCreds.Identifier)
 	if err != nil {
 		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3User, err)
@@ -163,7 +166,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if !userExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else {
-			err := s3AdminClient.RemoveUser(ctx, s3User.Status.UserIdentifier)
+			err := s3AdminClient.RemoveUser(ctx, userCreds.Identifier)
 			if err != nil {
 				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3User, err)
