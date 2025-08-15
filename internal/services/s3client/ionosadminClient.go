@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	ionoscloud "github.com/ionos-cloud/sdk-go-object-storage"
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -158,6 +159,7 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 	if err := json.NewDecoder(resp.Body).Decode(&createUserResponse); err != nil {
 		return "", "", "", err
 	}
+	time.Sleep(10 * time.Second) // Wait for user to be fully created
 
 	addToGroupBody := fmt.Sprintf(`{"id":"%s"}`, createUserResponse.Id)
 
@@ -176,6 +178,7 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", "", errors.New("failed to add user to group: " + resp.Status + createUserResponse.Id + " for group " + c.S3GroupId)
 	}
+	time.Sleep(10 * time.Second) // Wait for user to be fully added to group
 
 	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/users/%s/s3keys", c.ApiUrl, createUserResponse.Id), nil)
 	if err != nil {
