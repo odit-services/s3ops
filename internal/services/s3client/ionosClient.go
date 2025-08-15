@@ -43,7 +43,7 @@ func (c *IonosClient) BucketExists(ctx context.Context, bucketName string) (bool
 }
 
 func (c *IonosClient) MakeBucket(ctx context.Context, bucketName string, options minio.MakeBucketOptions) error {
-	_, err := c.Client.BucketsApi.CreateBucket(ctx, bucketName).Execute()
+	_, err := c.Client.BucketsApi.CreateBucket(ctx, bucketName).CreateBucketConfiguration(*ionoscloud.NewCreateBucketConfiguration()).XAmzBucketObjectLockEnabled(options.ObjectLocking).Execute()
 	if err != nil {
 		return err
 	}
