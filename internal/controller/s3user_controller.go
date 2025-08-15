@@ -135,7 +135,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			SecretKey: string(secret.Data["secretKey"]),
 		}
 
-		if s3AdminClient.GetType() == "minio" && s3User.Status.UserIdentifier == "" {
+		if s3AdminClient.GetType() != "ionos" && s3User.Status.UserIdentifier == "" {
 			s3User.Status.UserIdentifier = userCreds.AccessKey
 			err = r.Status().Update(ctx, s3User)
 			if err != nil {
