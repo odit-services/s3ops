@@ -54,6 +54,10 @@ type S3ServerAuthSpec struct {
 
 	// +optional
 	// +kubebuilder:validation:Optional
+	ApiToken string `json:"apiToken" yaml:"apiToken"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
 	ExistingSecretRef string `json:"existingSecretRef" yaml:"existingSecretRef"`
 
 	// +optional
@@ -65,6 +69,11 @@ type S3ServerAuthSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=secretKey
 	SecretKeySecretKey string `json:"secretKeySecretKey" yaml:"secretKeySecretKey"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=apiToken
+	ApiTokenSecretKey string `json:"apiTokenSecretKey" yaml:"apiTokenSecretKey"`
 }
 
 // +kubebuilder:object:root=true

@@ -51,13 +51,14 @@ type IonosCreateUserS3KeyResponse struct {
 	} `json:"properties"`
 }
 
-func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, tls bool) (*IonosAdminClient, error) {
+func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, apiToken string, tls bool) (*IonosAdminClient, error) {
 	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
 	httpClient := &http.Client{}
 	return &IonosAdminClient{
 		Client:     client,
 		HttpClient: httpClient,
 		ApiUrl:     "https://api.ionos.com/cloudapi/v6",
+		ApiToken:   apiToken,
 	}, err
 }
 

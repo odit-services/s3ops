@@ -35,7 +35,7 @@ func (f *S3ClientFactoryDefault) NewAdminClient(s3Server v1alpha1.S3Server) (S3A
 	case "minio":
 		return NewMinioAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
 	case "ionos":
-		return NewIonosAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
+		return NewIonosAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.Auth.ApiToken, s3Server.Spec.TLS)
 	default:
 		return nil, fmt.Errorf("not implemented")
 	}
