@@ -170,7 +170,7 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", "", errors.New("failed to create user: " + resp.Status)
+		return "", "", "", errors.New("failed to create s3key: " + resp.Status + " for user " + createUserResponse.Id)
 	}
 
 	var createUserS3KeyResponse IonosCreateUserS3KeyResponse
