@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.11](#v0.8.11)
 * [v0.8.10](#v0.8.10)
 * [v0.8.9](#v0.8.9)
 * [v0.8.8](#v0.8.8)
@@ -34,6 +35,22 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.11"></a>
+### [v0.8.11](https://github.com/odit-services/s3ops/compare/v0.8.10...v0.8.11)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **api:** correct DeepCopyInto implementation for S3Server and handle ProviderOptions
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3bucket:** add Ionos policy creation and user secret handling in reconcile
+
 
 <a name="v0.8.10"></a>
 ### [v0.8.10](https://github.com/odit-services/s3ops/compare/v0.8.9...v0.8.10)
