@@ -215,6 +215,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		s3User.Status.SecretRef = secret.Name
 		s3User.Status.UserIdentifier = identifier
+		s3User.Status.ProviderMeta = identifier
 		s3User.Status.Created = true
 		r.Status().Update(ctx, s3User)
 	} else {
