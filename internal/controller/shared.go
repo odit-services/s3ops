@@ -47,4 +47,52 @@ const (
 			]
 		}
 	`
+	PolicyReadWriteIonos = `
+		{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "Grant Full Control",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": [
+							"arn:aws:iam:::user/%s"
+						]
+					},
+					"Action": "s3:*",
+					"Resource": [
+						"arn:aws:s3:::%s",
+						"arn:aws:s3:::%s/*"
+					]
+				},
+				{
+					"Sid": "Grant Full Control",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": [
+							"arn:aws:iam:::user/%s"
+						]
+					},
+					"Action": "s3:GetBucketLocation",
+					"Resource": [
+						"arn:aws:s3:::*"
+					]
+				},
+				{
+					"Sid": "AllowGetBucketLocation",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": "s3:GetBucketLocation",
+					"Resource": "arn:aws:s3:::*"
+				},
+				{
+					"Sid": "AllowGetBucketLocation",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": "s3:ListBucket",
+					"Resource": "arn:aws:s3:::*"
+				}
+			]
+		}
+	`
 )
