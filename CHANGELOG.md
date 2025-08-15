@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.6](#v0.8.6)
 * [v0.8.5](#v0.8.5)
 * [v0.8.4](#v0.8.4)
 * [v0.8.3](#v0.8.3)
@@ -29,6 +30,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.6"></a>
+### [v0.8.6](https://github.com/odit-services/s3ops/compare/v0.8.5...v0.8.6)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3client:** add functionality to add user to group after creation
+
 
 <a name="v0.8.5"></a>
 ### [v0.8.5](https://github.com/odit-services/s3ops/compare/v0.8.4...v0.8.5)
