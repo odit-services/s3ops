@@ -79,14 +79,14 @@ const (
 					]
 				},
 				{
-					"Sid": "AllowGetBucketLocation",
+					"Sid": "Allowall",
 					"Effect": "Allow",
 					"Principal": {
 						"AWS": [
 							"*"
 						]
 					},
-					"Action": ["s3:GetBucketLocation", "s3:ListBucket"],
+					"Action": ["s3:*"],
 					"Resource": ["arn:aws:s3:::*"]
 				}
 			]
