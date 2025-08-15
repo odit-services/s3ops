@@ -3,7 +3,6 @@ package s3client
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,7 +42,6 @@ func GenerateIonosClient(endpoint, accessKey, secretKey string) (*ionoscloud.API
 	endpointName := strings.Split(endpoint, ".")[1]
 	config.MiddlewareWithError = NewIonosSignerMw(endpointName, endpointType, accessKey, secretKey)
 	client := ionoscloud.NewAPIClient(config)
-	log.Println("Generated Ionos client with endpoint:", endpoint, "accessKey:", accessKey, "secretKey:", secretKey, "endpointName:", endpointName, "endpointType:", endpointType)
 
 	return client, nil
 }
