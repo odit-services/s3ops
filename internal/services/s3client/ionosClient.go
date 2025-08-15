@@ -2,6 +2,7 @@ package s3client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	ionoscloud "github.com/ionos-cloud/sdk-go-object-storage"
@@ -14,9 +15,15 @@ type IonosClient struct {
 
 func NewIonosClient(endpoint string, accessKey string, secretKey string, tls bool) (*IonosClient, error) {
 	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, fmt.Errorf("failed to create IONOS client: client is nil")
+	}
 	return &IonosClient{
 		Client: client,
-	}, err
+	}, nil
 }
 
 func (c *IonosClient) HealthCheck(timeout time.Duration) (context.CancelFunc, error) {
@@ -34,8 +41,11 @@ func (c *IonosClient) BucketExists(ctx context.Context, bucketName string) (bool
 	if err != nil {
 		return false, err
 	}
+	if resource == nil || resource.Buckets == nil {
+		return false, nil
+	}
 	for _, bucket := range *resource.Buckets {
-		if *bucket.Name == bucketName {
+		if bucket.Name != nil && *bucket.Name == bucketName {
 			return true, nil
 		}
 	}
