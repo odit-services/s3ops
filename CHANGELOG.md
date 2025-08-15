@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.9.0](#v0.9.0)
 * [v0.8.17](#v0.8.17)
 * [v0.8.16](#v0.8.16)
 * [v0.8.15](#v0.8.15)
@@ -41,6 +42,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.9.0"></a>
+### [v0.9.0](https://github.com/odit-services/s3ops/compare/v0.8.17...v0.9.0)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **controller:** update IAM policy to allow all S3 actions for bucket location
+
 
 <a name="v0.8.17"></a>
 ### [v0.8.17](https://github.com/odit-services/s3ops/compare/v0.8.16...v0.8.17)
