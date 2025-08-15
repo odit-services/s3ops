@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.14](#v0.8.14)
 * [v0.8.13](#v0.8.13)
 * [v0.8.12](#v0.8.12)
 * [v0.8.11](#v0.8.11)
@@ -37,6 +38,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.14"></a>
+### [v0.8.14](https://github.com/odit-services/s3ops/compare/v0.8.13...v0.8.14)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 💅 Refactors
+
+* **s3client:** improve MakeBucket method by extracting bucket configuration
+
 
 <a name="v0.8.13"></a>
 ### [v0.8.13](https://github.com/odit-services/s3ops/compare/v0.8.12...v0.8.13)
