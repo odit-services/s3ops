@@ -157,7 +157,9 @@ func (c *S3AdminClientMocked) UserExists(ctx context.Context, accessKey string) 
 	if !c.CheckServerValid() {
 		return false, fmt.Errorf("invalid server")
 	}
-	return slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey), nil
+	userExists := slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey)
+	log.Printf("Checking if user exists %s with result %v", accessKey, userExists)
+	return userExists, nil
 }
 
 func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string) (string, string, string, error) {
@@ -167,7 +169,7 @@ func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string) (s
 	}
 	userExists := slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey)
 	if userExists {
-		return "", "", "", fmt.Errorf("user already exists")
+		return "", "", "", fmt.Errorf("user already exists: %s", accessKey)
 	}
 	return accessKey, accessKey, "mocked-secret-key", nil
 }
