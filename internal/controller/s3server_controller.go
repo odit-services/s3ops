@@ -122,12 +122,8 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return r.HandleError(s3Server, err)
 	}
 
-	_, err = minioClient.HealthCheck(1 * time.Second)
+	minioClient.HealthCheck(1 * time.Second)
 	time.Sleep(1 * time.Second)
-	if err != nil {
-		r.logger.Errorw("Failed to perform health check on Minio client for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
-		return r.HandleError(s3Server, fmt.Errorf("failed to perform health check on Minio client: %v", err))
-	}
 
 	minioOnline := minioClient.IsOnline()
 	if !minioOnline {
