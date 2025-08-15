@@ -121,6 +121,12 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return r.HandleError(s3Bucket, err)
 	}
 
+	s3AdminClient, err := s3client.GetS3AdminClientFromS3Server(s3Bucket.Spec.ServerRef, r.S3ClientFactory, r.Client)
+	if err != nil {
+		r.logger.Errorw("Failed to get S3AdminClient from S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
+		return r.HandleError(s3Bucket, err)
+	}
+
 	var bucketName string
 	if s3Bucket.Status.Name != "" {
 		bucketName = s3Bucket.Status.Name
@@ -296,49 +302,51 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Bucket, fmt.Errorf("unknown template: %s", s3Bucket.Spec.CreateUserFromTemplate))
 		}
 
-		policyExists := false
-		policy := &s3oditservicesv1alpha1.S3Policy{}
-		err = r.Client.Get(ctx, client.ObjectKey{
-			Namespace: req.Namespace,
-			Name:      s3Bucket.Name,
-		}, policy)
-		if err == nil {
-			r.logger.Debugw("Policy already exists", "name", req.Name, "namespace", req.Namespace)
-			policyExists = true
-		} else if client.IgnoreNotFound(err) != nil {
-			r.logger.Errorw("Failed to get policy", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3Bucket, err)
-		}
+		if s3Server.Spec.Type != "ionos" {
+			policyExists := false
+			policy := &s3oditservicesv1alpha1.S3Policy{}
+			err = r.Client.Get(ctx, client.ObjectKey{
+				Namespace: req.Namespace,
+				Name:      s3Bucket.Name,
+			}, policy)
+			if err == nil {
+				r.logger.Debugw("Policy already exists", "name", req.Name, "namespace", req.Namespace)
+				policyExists = true
+			} else if client.IgnoreNotFound(err) != nil {
+				r.logger.Errorw("Failed to get policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
 
-		if !policyExists {
-			err := r.Client.Create(ctx, &s3oditservicesv1alpha1.S3Policy{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      s3Bucket.Name,
-					Namespace: req.Namespace,
-					Labels: map[string]string{
-						"bucket":   s3Bucket.Name,
-						"template": s3Bucket.Spec.CreateUserFromTemplate,
-						"owner":    s3Bucket.Name,
+			if !policyExists {
+				err := r.Client.Create(ctx, &s3oditservicesv1alpha1.S3Policy{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      s3Bucket.Name,
+						Namespace: req.Namespace,
+						Labels: map[string]string{
+							"bucket":   s3Bucket.Name,
+							"template": s3Bucket.Spec.CreateUserFromTemplate,
+							"owner":    s3Bucket.Name,
+						},
 					},
-				},
-				Spec: s3oditservicesv1alpha1.S3PolicySpec{
-					ServerRef:     s3Bucket.Spec.ServerRef,
-					PolicyContent: policyContent,
-				},
-			})
-			if err != nil {
-				r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
-				return r.HandleError(s3Bucket, err)
+					Spec: s3oditservicesv1alpha1.S3PolicySpec{
+						ServerRef:     s3Bucket.Spec.ServerRef,
+						PolicyContent: policyContent,
+					},
+				})
+				if err != nil {
+					r.logger.Errorw("Failed to create policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3Bucket, err)
+				}
+				r.logger.Infow("Finished creating policy", "name", req.Name, "namespace", req.Namespace)
+			} else {
+				policy.Spec.PolicyContent = policyContent
+				err := r.Client.Update(ctx, policy)
+				if err != nil {
+					r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3Bucket, err)
+				}
+				r.logger.Infow("Finished updating policy", "name", req.Name, "namespace", req.Namespace)
 			}
-			r.logger.Infow("Finished creating policy", "name", req.Name, "namespace", req.Namespace)
-		} else {
-			policy.Spec.PolicyContent = policyContent
-			err := r.Client.Update(ctx, policy)
-			if err != nil {
-				r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
-				return r.HandleError(s3Bucket, err)
-			}
-			r.logger.Infow("Finished updating policy", "name", req.Name, "namespace", req.Namespace)
 		}
 
 		userExists := false
@@ -382,6 +390,31 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	if s3Server.Spec.Type == "ionos" {
+		r.logger.Infow("Creating Ionos policy for bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
+
+		// Wait for user secret to be generated and extract the user identifier
+		userSecret, err := r.waitForUserSecret(ctx, req.Namespace, s3Bucket.Name)
+		if err != nil {
+			r.logger.Errorw("Failed to get user secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
+
+		uid, exists := userSecret.Data["identifier"]
+		if !exists {
+			r.logger.Errorw("User identifier not found in secret", "name", req.Name, "namespace", req.Namespace)
+			return r.HandleError(s3Bucket, fmt.Errorf("user identifier not found in secret"))
+		}
+		r.logger.Infow("User identifier found", "name", req.Name, "namespace", req.Namespace, "identifier", string(uid))
+
+		err = s3AdminClient.MakePolicy(ctx, bucketName, fmt.Sprintf(PolicyReadWriteIonos, uid, bucketName, bucketName, uid))
+		if err != nil {
+			r.logger.Errorw("Failed to create Ionos policy for bucket", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3Bucket, err)
+		}
+		r.logger.Infow("Finished creating Ionos policy for bucket", "name", req.Name, "namespace", req.Namespace)
+	}
+
 	r.logger.Infow("Finished reconciling s3Bucket", "name", req.Name, "namespace", req.Namespace, "bucketName", bucketName)
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
 		CrStatus: s3oditservicesv1alpha1.CrStatus{
@@ -404,6 +437,28 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{
 		RequeueAfter: 5 * time.Minute,
 	}, nil
+}
+
+func (r *S3BucketReconciler) waitForUserSecret(ctx context.Context, namespace, name string) (*corev1.Secret, error) {
+	secretName := fmt.Sprintf("%s-s3creds", name)
+	secret := &corev1.Secret{}
+
+	for i := 0; i < 30; i++ { // Wait up to 5 minutes (30 * 10s)
+		err := r.Get(ctx, client.ObjectKey{
+			Namespace: namespace,
+			Name:      secretName,
+		}, secret)
+		if err == nil {
+			// Check if the secret has the required data
+			if _, exists := secret.Data["identifier"]; exists {
+				return secret, nil
+			}
+		}
+
+		time.Sleep(10 * time.Second)
+	}
+
+	return nil, fmt.Errorf("timeout waiting for user secret %s in namespace %s", secretName, namespace)
 }
 
 // SetupWithManager sets up the controller with the Manager.
