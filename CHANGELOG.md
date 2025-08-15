@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.4](#v0.8.4)
 * [v0.8.3](#v0.8.3)
 * [v0.8.2](#v0.8.2)
 * [v0.8.1](#v0.8.1)
@@ -27,6 +28,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.4"></a>
+### [v0.8.4](https://github.com/odit-services/s3ops/compare/v0.8.3...v0.8.4)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **s3client:** improve error message for S3 key creation in MakeUser function
+
 
 <a name="v0.8.3"></a>
 ### [v0.8.3](https://github.com/odit-services/s3ops/compare/v0.8.2...v0.8.3)
