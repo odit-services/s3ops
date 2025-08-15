@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.10](#v0.8.10)
 * [v0.8.9](#v0.8.9)
 * [v0.8.8](#v0.8.8)
 * [v0.8.7](#v0.8.7)
@@ -33,6 +34,22 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.10"></a>
+### [v0.8.10](https://github.com/odit-services/s3ops/compare/v0.8.9...v0.8.10)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3client:** implement policy management methods in IonosAdminClient
+* **s3user:** include user identifier in S3 user credentials structure
+
 
 <a name="v0.8.9"></a>
 ### [v0.8.9](https://github.com/odit-services/s3ops/compare/v0.8.8...v0.8.9)
