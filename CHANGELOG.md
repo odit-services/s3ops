@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.0](#v0.8.0)
 * [v0.7.1](#v0.7.1)
 * [v0.7.0](#v0.7.0)
 * [v0.6.0](#v0.6.0)
@@ -23,6 +24,32 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.0"></a>
+### [v0.8.0](https://github.com/odit-services/s3ops/compare/v0.7.1...v0.8.0)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **api:** add ProviderMeta field to S3UserStatus for provider-specific metadata
+* **client:** implement ListUsers method in IonosAdminClient for user retrieval
+* **mocks:** enhance user existence checks with logging and detailed error messages
+
+#### 🩹 Fixes
+
+* **controller:** update user identifier condition for S3AdminClient type check
+
+#### 💅 Refactors
+
+* Add seperate client identifier for wider access key creation support
+* **client:** simplify IsOnline method in IonosClient
+
 
 <a name="v0.7.1"></a>
 ### [v0.7.1](https://github.com/odit-services/s3ops/compare/v0.7.0...v0.7.1)
