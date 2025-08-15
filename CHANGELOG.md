@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.5](#v0.8.5)
 * [v0.8.4](#v0.8.4)
 * [v0.8.3](#v0.8.3)
 * [v0.8.2](#v0.8.2)
@@ -28,6 +29,25 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.5"></a>
+### [v0.8.5](https://github.com/odit-services/s3ops/compare/v0.8.4...v0.8.5)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3client:** add providerOptions to IonosAdminClient and update instantiation feat(s3server): add optional providerOptions field to S3ServerSpec
+
+#### 🩹 Fixes
+
+* **s3server:** remove error handling for Minio health check
+
 
 <a name="v0.8.4"></a>
 ### [v0.8.4](https://github.com/odit-services/s3ops/compare/v0.8.3...v0.8.4)
