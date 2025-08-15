@@ -59,7 +59,7 @@ const (
 							"arn:aws:iam:::user/%s"
 						]
 					},
-					"Action": "s3:*",
+					"Action": ["s3:*"],
 					"Resource": [
 						"arn:aws:s3:::%s",
 						"arn:aws:s3:::%s/*"
@@ -73,7 +73,7 @@ const (
 							"arn:aws:iam:::user/%s"
 						]
 					},
-					"Action": "s3:GetBucketLocation",
+					"Action": ["s3:GetBucketLocation"],
 					"Resource": [
 						"arn:aws:s3:::*"
 					]
@@ -82,14 +82,7 @@ const (
 					"Sid": "AllowGetBucketLocation",
 					"Effect": "Allow",
 					"Principal": "*",
-					"Action": "s3:GetBucketLocation",
-					"Resource": "arn:aws:s3:::*"
-				},
-				{
-					"Sid": "AllowGetBucketLocation",
-					"Effect": "Allow",
-					"Principal": "*",
-					"Action": "s3:ListBucket",
+					"Action": ["s3:GetBucketLocation", "s3:ListBucket"],
 					"Resource": "arn:aws:s3:::*"
 				}
 			]
