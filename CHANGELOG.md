@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.7](#v0.8.7)
 * [v0.8.6](#v0.8.6)
 * [v0.8.5](#v0.8.5)
 * [v0.8.4](#v0.8.4)
@@ -30,6 +31,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.7"></a>
+### [v0.8.7](https://github.com/odit-services/s3ops/compare/v0.8.6...v0.8.7)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🚀 Enhancements
+
+* **s3user:** add ProviderMeta to S3User status after reconciliation
+
 
 <a name="v0.8.6"></a>
 ### [v0.8.6](https://github.com/odit-services/s3ops/compare/v0.8.5...v0.8.6)
