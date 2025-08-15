@@ -26,10 +26,7 @@ func (c *IonosClient) HealthCheck(timeout time.Duration) (context.CancelFunc, er
 
 func (c *IonosClient) IsOnline() bool {
 	_, err := c.HealthCheck(5 * time.Second)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func (c *IonosClient) BucketExists(ctx context.Context, bucketName string) (bool, error) {
