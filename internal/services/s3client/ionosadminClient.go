@@ -12,13 +12,10 @@ type IonosAdminClient struct {
 }
 
 func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, tls bool) (*IonosAdminClient, error) {
-	config := ionoscloud.NewConfiguration(endpoint)
-	config.AddDefaultHeader("Authorization", accessKey)
-	client := ionoscloud.NewAPIClient(config)
-
+	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
 	return &IonosAdminClient{
 		Client: client,
-	}, nil
+	}, err
 }
 
 func (c *IonosAdminClient) UserExists(ctx context.Context, accessKey string) (bool, error) {

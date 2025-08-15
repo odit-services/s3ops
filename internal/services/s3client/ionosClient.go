@@ -13,13 +13,10 @@ type IonosClient struct {
 }
 
 func NewIonosClient(endpoint string, accessKey string, secretKey string, tls bool) (*IonosClient, error) {
-	config := ionoscloud.NewConfiguration(endpoint)
-	config.AddDefaultHeader("Authorization", accessKey)
-	client := ionoscloud.NewAPIClient(config)
-
+	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
 	return &IonosClient{
 		Client: client,
-	}, nil
+	}, err
 }
 
 func (c *IonosClient) HealthCheck(timeout time.Duration) (context.CancelFunc, error) {
