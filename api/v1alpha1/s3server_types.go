@@ -41,6 +41,11 @@ type S3ServerSpec struct {
 
 	// +kubebuilder:validation:Required
 	Auth S3ServerAuthSpec `json:"auth" yaml:"auth"`
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default={}
+	ProviderOptions map[string]string `json:"providerOptions,omitempty" yaml:"providerOptions,omitempty"`
 }
 
 type S3ServerAuthSpec struct {

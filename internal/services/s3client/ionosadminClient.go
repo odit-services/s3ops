@@ -18,6 +18,7 @@ type IonosAdminClient struct {
 	HttpClient *http.Client
 	ApiUrl     string
 	ApiToken   string
+	S3GroupId  string
 }
 
 type IonosUserListResponse struct {
@@ -51,7 +52,7 @@ type IonosCreateUserS3KeyResponse struct {
 	} `json:"properties"`
 }
 
-func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, apiToken string, tls bool) (*IonosAdminClient, error) {
+func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, apiToken string, tls bool, providerOptions map[string]string) (*IonosAdminClient, error) {
 	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
 	httpClient := &http.Client{}
 	return &IonosAdminClient{
@@ -59,6 +60,7 @@ func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, ap
 		HttpClient: httpClient,
 		ApiUrl:     "https://api.ionos.com/cloudapi/v6",
 		ApiToken:   apiToken,
+		S3GroupId:  providerOptions["s3GroupId"],
 	}, err
 }
 

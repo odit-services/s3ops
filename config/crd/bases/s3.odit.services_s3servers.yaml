@@ -74,6 +74,11 @@ spec:
                 type: object
               endpoint:
                 type: string
+              providerOptions:
+                additionalProperties:
+                  type: string
+                default: {}
+                type: object
               tls:
                 default: true
                 type: boolean
