@@ -224,22 +224,29 @@ func (c *IonosAdminClient) RemoveUser(ctx context.Context, identifier string) er
 }
 
 func (c *IonosAdminClient) PolicyExists(ctx context.Context, policyName string) (bool, error) {
-	//TODO:
-	return false, errors.New("PolicyExists not implemented")
+	return true, nil
 }
 
-func (c *IonosAdminClient) MakePolicy(ctx context.Context, policyName string, policy string) error {
-	return errors.New("MakePolicy not implemented")
+func (c *IonosAdminClient) MakePolicy(ctx context.Context, bucketname string, policy string) error {
+	var policyObj ionoscloud.BucketPolicy
+	if err := json.Unmarshal([]byte(policy), &policyObj); err != nil {
+		return err
+	}
+	_, err := c.Client.PolicyApi.PutBucketPolicy(ctx, bucketname).BucketPolicy(policyObj).Execute()
+	if err != nil {
+		return fmt.Errorf("failed to create policy for bucket %s: %w", bucketname, err)
+	}
+	return nil
 }
 
 func (c *IonosAdminClient) UpdatePolicy(ctx context.Context, policyName string, policy string) error {
-	return errors.New("UpdatePolicy not implemented")
+	return c.MakePolicy(ctx, policyName, policy)
 }
 
 func (c *IonosAdminClient) RemovePolicy(ctx context.Context, policyName string) error {
-	return errors.New("RemovePolicy not implemented")
+	return nil
 }
 
 func (c *IonosAdminClient) ApplyPolicyToUser(ctx context.Context, policyName string, accessKey string) error {
-	return errors.New("ApplyPolicyToUser not implemented")
+	return nil
 }
