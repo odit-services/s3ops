@@ -133,6 +133,10 @@ type S3AdminClientMocked struct {
 	SecretKey       string
 }
 
+func (c *S3AdminClientMocked) GetType() string {
+	return "mocked"
+}
+
 func (c *S3AdminClientMocked) CheckServerValid() bool {
 	if !slices.Contains(c.S3ClientMockEnv.ValidEndpoints, c.Endpoint) {
 		log.Printf("Invalid endpoint %s", c.Endpoint)
@@ -156,16 +160,16 @@ func (c *S3AdminClientMocked) UserExists(ctx context.Context, accessKey string) 
 	return slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey), nil
 }
 
-func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string, secretKey string) error {
+func (c *S3AdminClientMocked) MakeUser(ctx context.Context, accessKey string) (string, string, string, error) {
 	c.S3ClientMockSpy.MakeUserCalled++
 	if !c.CheckServerValid() {
-		return fmt.Errorf("invalid server")
+		return "", "", "", fmt.Errorf("invalid server")
 	}
 	userExists := slices.Contains(c.S3ClientMockEnv.ExistingUsers, accessKey)
 	if userExists {
-		return fmt.Errorf("user already exists")
+		return "", "", "", fmt.Errorf("user already exists")
 	}
-	return nil
+	return accessKey, accessKey, "mocked-secret-key", nil
 }
 
 func (c *S3AdminClientMocked) RemoveUser(ctx context.Context, accessKey string) error {

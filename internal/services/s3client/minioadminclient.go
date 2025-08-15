@@ -3,7 +3,9 @@ package s3client
 import (
 	"context"
 
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/minio/madmin-go"
+	gopassword "github.com/sethvargo/go-password/password"
 )
 
 type MinioAdminClient struct {
@@ -21,6 +23,10 @@ func NewMinioAdminClient(endpoint string, accessKey string, secretKey string, tl
 	}, nil
 }
 
+func (c *MinioAdminClient) GetType() string {
+	return "minio"
+}
+
 func (c *MinioAdminClient) UserExists(ctx context.Context, accessKey string) (bool, error) {
 	users, err := c.Client.ListUsers(context.Background())
 	if err != nil {
@@ -34,8 +40,20 @@ func (c *MinioAdminClient) UserExists(ctx context.Context, accessKey string) (bo
 	return false, nil
 }
 
-func (c *MinioAdminClient) MakeUser(ctx context.Context, accessKey string, secretKey string) error {
-	return c.Client.AddUser(context.Background(), accessKey, secretKey)
+func (c *MinioAdminClient) MakeUser(ctx context.Context, name string) (string, string, string, error) {
+	nanoid, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 5)
+	if err != nil {
+		return "", "", "", err
+	}
+	accessKey := name + "-" + nanoid
+
+	secretKey, err := gopassword.Generate(64, 20, 0, true, true)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	err = c.Client.AddUser(context.Background(), accessKey, secretKey)
+	return accessKey, accessKey, secretKey, err
 }
 
 func (c *MinioAdminClient) RemoveUser(ctx context.Context, accessKey string) error {

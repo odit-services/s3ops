@@ -25,18 +25,16 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	gonanoid "github.com/matoous/go-nanoid/v2"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
-	gopassword "github.com/sethvargo/go-password/password"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // S3UserReconciler reconciles a S3User object
@@ -118,53 +116,36 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	var secret *corev1.Secret
-	if s3User.Status.SecretRef == "" {
-		nanoID, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 20)
-		if err != nil {
-			r.logger.Errorw("Failed to generate nanoID", "error", err)
-			return r.HandleError(s3User, err)
-		}
-
-		secretKey, err := gopassword.Generate(64, 20, 0, true, true)
-		if err != nil {
-			r.logger.Errorw("Failed to generate secretKey", "error", err)
-			return r.HandleError(s3User, err)
-		}
-
-		secret = &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
-				Namespace: s3User.Namespace,
-			},
-			StringData: map[string]string{
-				"accessKey": nanoID,
-				"secretKey": secretKey,
-			},
-		}
-		err = createSecret(ctx, r.Client, secret)
-		if err != nil {
-			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3User, err)
-		}
-		s3User.Status.SecretRef = secret.Name
-		r.Status().Update(ctx, s3User)
-	} else {
+	var userCreds struct {
+		AccessKey string
+		SecretKey string
+	}
+	if s3User.Status.SecretRef != "" {
 		secret, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
 		if err != nil {
 			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
 		}
+
+		userCreds = struct {
+			AccessKey string
+			SecretKey string
+		}{
+			AccessKey: string(secret.Data["accessKey"]),
+			SecretKey: string(secret.Data["secretKey"]),
+		}
+
+		if s3AdminClient.GetType() == "minio" && s3User.Status.UserIdentifier == "" {
+			s3User.Status.UserIdentifier = userCreds.AccessKey
+			err = r.Status().Update(ctx, s3User)
+			if err != nil {
+				r.logger.Errorw("Failed to update S3User resource status with user identifier", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+		}
 	}
 
-	userCreds := struct {
-		AccessKey string
-		SecretKey string
-	}{
-		AccessKey: string(secret.Data["accessKey"]),
-		SecretKey: string(secret.Data["secretKey"]),
-	}
-
-	userExists, err := s3AdminClient.UserExists(ctx, userCreds.AccessKey)
+	userExists, err := s3AdminClient.UserExists(ctx, s3User.Status.UserIdentifier)
 	if err != nil {
 		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3User, err)
@@ -182,7 +163,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if !userExists {
 			r.logger.Debugw("User does not exist", "name", req.Name, "namespace", req.Namespace)
 		} else {
-			err := s3AdminClient.RemoveUser(ctx, userCreds.AccessKey)
+			err := s3AdminClient.RemoveUser(ctx, s3User.Status.UserIdentifier)
 			if err != nil {
 				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3User, err)
@@ -212,12 +193,30 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return r.HandleError(s3User, err)
 		}
 
-		err = s3AdminClient.MakeUser(ctx, userCreds.AccessKey, userCreds.SecretKey)
+		identifier, accessKey, secretKey, err := s3AdminClient.MakeUser(ctx, s3User.Name)
 		if err != nil {
 			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3User, err)
 		}
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
+				Namespace: s3User.Namespace,
+			},
+			StringData: map[string]string{
+				"accessKey": accessKey,
+				"secretKey": secretKey,
+			},
+		}
+		err = createSecret(ctx, r.Client, secret)
+		if err != nil {
+			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+		s3User.Status.SecretRef = secret.Name
+		s3User.Status.UserIdentifier = identifier
 		s3User.Status.Created = true
+		r.Status().Update(ctx, s3User)
 	} else {
 		r.logger.Debugw("User already exists", "name", req.Name, "namespace", req.Namespace)
 		s3User.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
