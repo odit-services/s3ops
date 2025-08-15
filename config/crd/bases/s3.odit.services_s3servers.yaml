@@ -76,6 +76,7 @@ spec:
                 default: minio
                 enum:
                 - minio
+                - ionos
                 type: string
             required:
             - auth

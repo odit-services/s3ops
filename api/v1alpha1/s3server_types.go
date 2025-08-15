@@ -26,7 +26,7 @@ import (
 // S3ServerSpec defines the desired state of S3Server
 type S3ServerSpec struct {
 
-	// +kubebuilder:validation:Enum=minio
+	// +kubebuilder:validation:Enum=minio;ionos
 	// +kubebuilder:validation:Required
 	// +kubebuilder:default=minio
 	Type string `json:"type" yaml:"type"`
