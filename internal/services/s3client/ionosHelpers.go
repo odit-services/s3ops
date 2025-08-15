@@ -39,10 +39,11 @@ func NewIonosSignerMw(region, service, accessKey, secretKey string) ionoscloud.M
 
 func GenerateIonosClient(endpoint, accessKey, secretKey string) (*ionoscloud.APIClient, error) {
 	config := ionoscloud.NewConfiguration(endpoint)
-	endpointName := strings.Split(endpoint, ".")[0]
-	config.MiddlewareWithError = NewIonosSignerMw(endpointName, "s3", accessKey, secretKey)
+	endpointType := strings.Split(endpoint, ".")[0]
+	endpointName := strings.Split(endpoint, ".")[1]
+	config.MiddlewareWithError = NewIonosSignerMw(endpointName, endpointType, accessKey, secretKey)
 	client := ionoscloud.NewAPIClient(config)
-	log.Println("Generated Ionos client with endpoint:", endpoint, "accessKey:", accessKey, "secretKey:", secretKey, "endpointName:", endpointName)
+	log.Println("Generated Ionos client with endpoint:", endpoint, "accessKey:", accessKey, "secretKey:", secretKey, "endpointName:", endpointName, "endpointType:", endpointType)
 
 	return client, nil
 }
