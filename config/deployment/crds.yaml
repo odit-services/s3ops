@@ -383,10 +383,16 @@ spec:
                 type: string
               lastReconcileTime:
                 type: string
+              providerMeta:
+                type: string
               secretRef:
                 type: string
               state:
                 type: string
+              userIdentifier:
+                type: string
+            required:
+            - providerMeta
             type: object
         type: object
     served: true
