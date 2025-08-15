@@ -2,20 +2,61 @@ package s3client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"net/http"
 
 	ionoscloud "github.com/ionos-cloud/sdk-go-object-storage"
 )
 
 type IonosAdminClient struct {
-	Client *ionoscloud.APIClient
+	Client     *ionoscloud.APIClient
+	HttpClient *http.Client
+	ApiUrl     string
+	ApiToken   string
+}
+
+type IonosUserListResponse struct {
+	Id    string `json:"id"`
+	Items []struct {
+		Id   string `json:"id"`
+		Type string `json:"type"`
+		HRef string `json:"href"`
+	} `json:"items"`
 }
 
 func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, tls bool) (*IonosAdminClient, error) {
 	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
+	httpClient := &http.Client{}
 	return &IonosAdminClient{
-		Client: client,
+		Client:     client,
+		HttpClient: httpClient,
+		ApiUrl:     "https://api.ionos.com/cloudapi/v6",
 	}, err
+}
+
+func (c *IonosAdminClient) ListUsers() (IonosUserListResponse, error) {
+	req, err := http.NewRequest("GET", c.ApiUrl+"/um/users", nil)
+	if err != nil {
+		return IonosUserListResponse{}, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return IonosUserListResponse{}, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return IonosUserListResponse{}, errors.New("failed to fetch users: " + resp.Status)
+	}
+
+	var userList IonosUserListResponse
+	if err := json.NewDecoder(resp.Body).Decode(&userList); err != nil {
+		return IonosUserListResponse{}, err
+	}
+	return userList, nil
 }
 
 func (c *IonosAdminClient) UserExists(ctx context.Context, accessKey string) (bool, error) {
