@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.3](#v0.8.3)
 * [v0.8.2](#v0.8.2)
 * [v0.8.1](#v0.8.1)
 * [v0.8.0](#v0.8.0)
@@ -26,6 +27,22 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.3"></a>
+### [v0.8.3](https://github.com/odit-services/s3ops/compare/v0.8.2...v0.8.3)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **s3client:** remove logging from Ionos client generation for cleaner output
+* **s3client:** improve HTTP response status code checks for user operations
+
 
 <a name="v0.8.2"></a>
 ### [v0.8.2](https://github.com/odit-services/s3ops/compare/v0.8.1...v0.8.2)
