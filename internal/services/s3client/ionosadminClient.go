@@ -79,7 +79,7 @@ func (c *IonosAdminClient) ListUsers() (IonosUserListResponse, error) {
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return IonosUserListResponse{}, errors.New("failed to fetch users: " + resp.Status)
 	}
 
@@ -148,7 +148,7 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", "", errors.New("failed to create user: " + resp.Status)
 	}
 
@@ -169,7 +169,7 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", "", errors.New("failed to create user: " + resp.Status)
 	}
 
@@ -193,7 +193,7 @@ func (c *IonosAdminClient) RemoveUser(ctx context.Context, identifier string) er
 		return err
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return errors.New("failed to create user: " + resp.Status)
 	}
 
