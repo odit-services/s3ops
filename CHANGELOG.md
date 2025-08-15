@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.8.16](#v0.8.16)
 * [v0.8.15](#v0.8.15)
 * [v0.8.14](#v0.8.14)
 * [v0.8.13](#v0.8.13)
@@ -39,6 +40,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.8.16"></a>
+### [v0.8.16](https://github.com/odit-services/s3ops/compare/v0.8.15...v0.8.16)
+
+> 2025-08-15
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **controller:** update IAM policy to use object format for Principal
+
 
 <a name="v0.8.15"></a>
 ### [v0.8.15](https://github.com/odit-services/s3ops/compare/v0.8.14...v0.8.15)
