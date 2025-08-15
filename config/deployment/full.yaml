@@ -261,6 +261,11 @@ spec:
                   accessKeySecretKey:
                     default: accessKey
                     type: string
+                  apiToken:
+                    type: string
+                  apiTokenSecretKey:
+                    default: apiToken
+                    type: string
                   existingSecretRef:
                     type: string
                   secretKey:
@@ -940,7 +945,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.8.0
+        image: ghcr.io/odit-services/s3ops:v0.8.1
         name: manager
         resources:
           limits:

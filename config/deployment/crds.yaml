@@ -252,6 +252,11 @@ spec:
                   accessKeySecretKey:
                     default: accessKey
                     type: string
+                  apiToken:
+                    type: string
+                  apiTokenSecretKey:
+                    default: apiToken
+                    type: string
                   existingSecretRef:
                     type: string
                   secretKey:
