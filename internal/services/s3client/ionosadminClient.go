@@ -159,6 +159,24 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 		return "", "", "", err
 	}
 
+	addToGroupBody := fmt.Sprintf(`{"id":"%s"}`, createUserResponse.Id)
+
+	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/groups/%s/users", c.ApiUrl, c.S3GroupId), bytes.NewBuffer([]byte(addToGroupBody)))
+	if err != nil {
+		return "", "", "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
+
+	resp, err = c.HttpClient.Do(req)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", "", "", errors.New("failed to add user to group: " + resp.Status + createUserResponse.Id + " for group " + c.S3GroupId)
+	}
+
 	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/users/%s/s3keys", c.ApiUrl, createUserResponse.Id), nil)
 	if err != nil {
 		return "", "", "", err
