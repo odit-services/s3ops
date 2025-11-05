@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.9.1](#v0.9.1)
 * [v0.9.0](#v0.9.0)
 * [v0.8.17](#v0.8.17)
 * [v0.8.16](#v0.8.16)
@@ -42,6 +43,17 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.9.1"></a>
+### [v0.9.1](https://github.com/odit-services/s3ops/compare/v0.9.0...v0.9.1)
+
+> 2025-11-05
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
 
 <a name="v0.9.0"></a>
 ### [v0.9.0](https://github.com/odit-services/s3ops/compare/v0.8.17...v0.9.0)
