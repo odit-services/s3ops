@@ -196,33 +196,91 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return r.HandleError(s3User, err)
 		}
 
-		identifier, accessKey, secretKey, err := s3AdminClient.MakeUser(ctx, s3User.Name)
-		if err != nil {
-			r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3User, err)
+		// For Ionos servers we use a two-phase creation flow so that the IAM user ID
+		// is persisted in the CR status before the group-add and S3-key steps are
+		// attempted. This ensures that a transient failure (e.g. a 504 on the
+		// group-add call) does not cause an ever-growing number of orphaned IAM users:
+		// on the next reconcile UserExists will find the already-created user and
+		// FinalizeIonosUser will be called instead of MakeUser.
+		if ionosClient, ok := s3AdminClient.(*s3client.IonosAdminClient); ok {
+			pendingUserId := s3User.Status.ProviderMeta
+
+			if pendingUserId == "" {
+				// Phase 1: create the IAM user and immediately persist its ID.
+				r.logger.Infow("Creating Ionos IAM user (phase 1)", "name", req.Name, "namespace", req.Namespace)
+				pendingUserId, err = ionosClient.CreateIonosUser(s3User.Name)
+				if err != nil {
+					r.logger.Errorw("Failed to create Ionos IAM user", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3User, err)
+				}
+				// Persist the ID so we can resume if phase 2 fails.
+				s3User.Status.ProviderMeta = pendingUserId
+				if err = r.Status().Update(ctx, s3User); err != nil {
+					r.logger.Errorw("Failed to persist pending Ionos user ID", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3User, err)
+				}
+				r.logger.Infow("Ionos IAM user created, ID persisted", "name", req.Name, "namespace", req.Namespace, "userId", pendingUserId)
+			} else {
+				r.logger.Infow("Resuming Ionos user finalization from persisted ID", "name", req.Name, "namespace", req.Namespace, "userId", pendingUserId)
+			}
+
+			// Phase 2: add to group and create S3 key. Safe to retry.
+			accessKey, secretKey, err := ionosClient.FinalizeIonosUser(ctx, pendingUserId)
+			if err != nil {
+				r.logger.Errorw("Failed to finalize Ionos user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+
+			r.logger.Infow("Ionos user finalized", "name", req.Name, "namespace", req.Namespace, "userId", pendingUserId, "accessKey", accessKey)
+			secret = &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
+					Namespace: s3User.Namespace,
+				},
+				StringData: map[string]string{
+					"accessKey":  accessKey,
+					"secretKey":  secretKey,
+					"identifier": pendingUserId,
+				},
+			}
+			err = createSecret(ctx, r.Client, secret)
+			if err != nil {
+				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+			s3User.Status.SecretRef = secret.Name
+			s3User.Status.UserIdentifier = pendingUserId
+			s3User.Status.Created = true
+			r.Status().Update(ctx, s3User)
+		} else {
+			identifier, accessKey, secretKey, err := s3AdminClient.MakeUser(ctx, s3User.Name)
+			if err != nil {
+				r.logger.Errorw("Failed to create user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+			r.logger.Infow("User created", "name", req.Name, "namespace", req.Namespace, "identifier", identifier, "accessKey", accessKey)
+			secret = &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
+					Namespace: s3User.Namespace,
+				},
+				StringData: map[string]string{
+					"accessKey":  accessKey,
+					"secretKey":  secretKey,
+					"identifier": identifier,
+				},
+			}
+			err = createSecret(ctx, r.Client, secret)
+			if err != nil {
+				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+			s3User.Status.SecretRef = secret.Name
+			s3User.Status.UserIdentifier = identifier
+			s3User.Status.ProviderMeta = identifier
+			s3User.Status.Created = true
+			r.Status().Update(ctx, s3User)
 		}
-		r.logger.Infow("User created", "name", req.Name, "namespace", req.Namespace, "identifier", identifier, "accessKey", accessKey)
-		secret = &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
-				Namespace: s3User.Namespace,
-			},
-			StringData: map[string]string{
-				"accessKey":  accessKey,
-				"secretKey":  secretKey,
-				"identifier": identifier,
-			},
-		}
-		err = createSecret(ctx, r.Client, secret)
-		if err != nil {
-			r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3User, err)
-		}
-		s3User.Status.SecretRef = secret.Name
-		s3User.Status.UserIdentifier = identifier
-		s3User.Status.ProviderMeta = identifier
-		s3User.Status.Created = true
-		r.Status().Update(ctx, s3User)
 	} else {
 		r.logger.Debugw("User already exists", "name", req.Name, "namespace", req.Namespace)
 		s3User.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate

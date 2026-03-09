@@ -94,28 +94,46 @@ func (c *IonosAdminClient) ListUsers() (IonosUserListResponse, error) {
 }
 
 func (c *IonosAdminClient) UserExists(ctx context.Context, userId string) (bool, error) {
-	userList, err := c.ListUsers()
+	if userId == "" {
+		return false, nil
+	}
+	// Use a direct GET by ID instead of listing all users to avoid pagination
+	// issues (the list endpoint only returns one page, which is insufficient
+	// once thousands of users exist).
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/um/users/%s", c.ApiUrl, userId), nil)
 	if err != nil {
 		return false, err
 	}
-	for _, user := range userList.Items {
-		if user.Id == userId {
-			return true, nil
-		}
+	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return false, err
 	}
-	return false, nil
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return false, nil
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false, errors.New("failed to fetch user: " + resp.Status)
+	}
+	return true, nil
 }
 
-func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, string, string, error) {
+// CreateIonosUser creates the IAM user and returns its ID. This is the first step
+// of a two-phase user creation. The caller should persist the returned ID before
+// calling FinalizeIonosUser so that partial failures are recoverable.
+func (c *IonosAdminClient) CreateIonosUser(name string) (string, error) {
 	nanoid, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 5)
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 	name = name + "-" + nanoid
 
 	password, err := gopassword.Generate(64, 20, 0, true, true)
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 
 	createUserRequest := IonosCreateUserRequest{
@@ -137,71 +155,94 @@ func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, s
 	}
 	reqBody, err := json.Marshal(createUserRequest)
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 	req, err := http.NewRequest("POST", c.ApiUrl+"/um/users", bytes.NewBuffer(reqBody))
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", "", errors.New("failed to create user: " + resp.Status)
+		return "", errors.New("failed to create user: " + resp.Status)
 	}
 
 	var createUserResponse IonosCreateUserResponse
 	if err := json.NewDecoder(resp.Body).Decode(&createUserResponse); err != nil {
-		return "", "", "", err
+		return "", err
 	}
 	time.Sleep(10 * time.Second) // Wait for user to be fully created
 
-	addToGroupBody := fmt.Sprintf(`{"id":"%s"}`, createUserResponse.Id)
+	return createUserResponse.Id, nil
+}
 
-	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/groups/%s/users", c.ApiUrl, c.S3GroupId), bytes.NewBuffer([]byte(addToGroupBody)))
+// FinalizeIonosUser adds an already-created IAM user to the S3 group and provisions
+// an S3 key. This is the second step of the two-phase creation flow and is safe to
+// retry: if the user is already in the group the API will return a 422 which is
+// treated as a success.
+func (c *IonosAdminClient) FinalizeIonosUser(ctx context.Context, userId string) (string, string, error) {
+	addToGroupBody := fmt.Sprintf(`{"id":"%s"}`, userId)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/um/groups/%s/users", c.ApiUrl, c.S3GroupId), bytes.NewBuffer([]byte(addToGroupBody)))
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
 
-	resp, err = c.HttpClient.Do(req)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", "", errors.New("failed to add user to group: " + resp.Status + createUserResponse.Id + " for group " + c.S3GroupId)
+	resp.Body.Close()
+	// 422 means the user is already in the group – treat as success.
+	if resp.StatusCode < 200 || (resp.StatusCode >= 300 && resp.StatusCode != 422) {
+		return "", "", errors.New("failed to add user to group: " + resp.Status + userId + " for group " + c.S3GroupId)
 	}
 	time.Sleep(10 * time.Second) // Wait for user to be fully added to group
 
-	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/users/%s/s3keys", c.ApiUrl, createUserResponse.Id), nil)
+	req, err = http.NewRequest("POST", fmt.Sprintf("%s/um/users/%s/s3keys", c.ApiUrl, userId), nil)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
 
 	resp, err = c.HttpClient.Do(req)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", "", "", errors.New("failed to create s3key: " + resp.Status + " for user " + createUserResponse.Id)
+		return "", "", errors.New("failed to create s3key: " + resp.Status + " for user " + userId)
 	}
 
 	var createUserS3KeyResponse IonosCreateUserS3KeyResponse
 	if err := json.NewDecoder(resp.Body).Decode(&createUserS3KeyResponse); err != nil {
+		return "", "", err
+	}
+
+	return createUserS3KeyResponse.Id, createUserS3KeyResponse.Properties.SecretKey, nil
+}
+
+func (c *IonosAdminClient) MakeUser(ctx context.Context, name string) (string, string, string, error) {
+	userId, err := c.CreateIonosUser(name)
+	if err != nil {
 		return "", "", "", err
 	}
 
-	return createUserResponse.Id, createUserS3KeyResponse.Id, createUserS3KeyResponse.Properties.SecretKey, nil
+	accessKey, secretKey, err := c.FinalizeIonosUser(ctx, userId)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return userId, accessKey, secretKey, nil
 }
 
 func (c *IonosAdminClient) RemoveUser(ctx context.Context, identifier string) error {
