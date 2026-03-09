@@ -29,6 +29,24 @@ func createSecret(ctx context.Context, r client.Client, secret *corev1.Secret) e
 	return nil
 }
 
+// upsertSecret creates the secret if it does not exist yet, or updates it in
+// place if it does. This is needed when a user is recreated after being
+// deleted from the backing S3 provider: the Kubernetes secret already exists
+// (from the previous incarnation) and must be overwritten with the new
+// credentials rather than failing with "already exists".
+func upsertSecret(ctx context.Context, r client.Client, secret *corev1.Secret) error {
+	existing := &corev1.Secret{}
+	err := r.Get(ctx, client.ObjectKey{Namespace: secret.Namespace, Name: secret.Name}, existing)
+	if err != nil {
+		// Secret doesn't exist yet – create it.
+		return r.Create(ctx, secret)
+	}
+	// Secret exists – overwrite its data with the new credentials.
+	existing.StringData = secret.StringData
+	existing.Data = secret.Data
+	return r.Update(ctx, existing)
+}
+
 const (
 	PolicyReadWrite = `
 		{

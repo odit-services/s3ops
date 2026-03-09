@@ -205,6 +205,27 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if ionosClient, ok := s3AdminClient.(*s3client.IonosAdminClient); ok {
 			pendingUserId := s3User.Status.ProviderMeta
 
+			// If ProviderMeta holds a user ID from a previous (possibly partial)
+			// creation attempt, verify that the user still exists in Ionos before
+			// trying to finalize it. If it has since been deleted externally we must
+			// start fresh rather than trying to finalize a ghost ID.
+			if pendingUserId != "" {
+				pendingExists, checkErr := ionosClient.UserExists(ctx, pendingUserId)
+				if checkErr != nil {
+					r.logger.Errorw("Failed to verify pending Ionos user", "name", req.Name, "namespace", req.Namespace, "error", checkErr)
+					return r.HandleError(s3User, checkErr)
+				}
+				if !pendingExists {
+					r.logger.Infow("Pending Ionos user no longer exists, starting fresh", "name", req.Name, "namespace", req.Namespace, "staleUserId", pendingUserId)
+					pendingUserId = ""
+					s3User.Status.ProviderMeta = ""
+					if err = r.Status().Update(ctx, s3User); err != nil {
+						r.logger.Errorw("Failed to clear stale ProviderMeta", "name", req.Name, "namespace", req.Namespace, "error", err)
+						return r.HandleError(s3User, err)
+					}
+				}
+			}
+
 			if pendingUserId == "" {
 				// Phase 1: create the IAM user and immediately persist its ID.
 				r.logger.Infow("Creating Ionos IAM user (phase 1)", "name", req.Name, "namespace", req.Namespace)
@@ -243,9 +264,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					"identifier": pendingUserId,
 				},
 			}
-			err = createSecret(ctx, r.Client, secret)
+			err = upsertSecret(ctx, r.Client, secret)
 			if err != nil {
-				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+				r.logger.Errorw("Failed to upsert secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3User, err)
 			}
 			s3User.Status.SecretRef = secret.Name
@@ -270,9 +291,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					"identifier": identifier,
 				},
 			}
-			err = createSecret(ctx, r.Client, secret)
+			err = upsertSecret(ctx, r.Client, secret)
 			if err != nil {
-				r.logger.Errorw("Failed to create secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
+				r.logger.Errorw("Failed to upsert secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3User, err)
 			}
 			s3User.Status.SecretRef = secret.Name
