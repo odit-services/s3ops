@@ -25,6 +25,11 @@ func (f *S3ClientFactoryDefault) NewClient(s3Server v1alpha1.S3Server) (S3Client
 		})
 	case "ionos":
 		return NewIonosClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
+	case "rustfs":
+		return minio.New(s3Server.Spec.Endpoint, &minio.Options{
+			Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
+			Secure: s3Server.Spec.TLS,
+		})
 	default:
 		return nil, fmt.Errorf("not implemented")
 	}
@@ -36,6 +41,8 @@ func (f *S3ClientFactoryDefault) NewAdminClient(s3Server v1alpha1.S3Server) (S3A
 		return NewMinioAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
 	case "ionos":
 		return NewIonosAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.Auth.ApiToken, s3Server.Spec.TLS, s3Server.Spec.ProviderOptions)
+	case "rustfs":
+		return NewRustfsAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS, s3Server.Spec.ProviderOptions)
 	default:
 		return nil, fmt.Errorf("not implemented")
 	}
