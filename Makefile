@@ -62,10 +62,9 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 # CONTAINER_TOOL defines the container tool to be used for building images.
-# Be aware that the target commands are dockeronly tested with Docker which is
-# scaffolded by default. However, you might want to replace it to use other
-# tools. (i.e. podman)
-CONTAINER_TOOL ?= podman
+# Auto-detected from the environment: podman is preferred if available, else docker.
+# Override with: make docker-build CONTAINER_TOOL=docker
+CONTAINER_TOOL ?= $(shell which podman 2>/dev/null | grep -q podman && echo podman || echo docker)
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -145,8 +144,18 @@ docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
 .PHONY: docker-build-multiarch
-docker-build-multiarch: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) buildx build --platform=linux/arm64,linux/amd64 --tag ${IMG} .
+docker-build-multiarch: ## Build and push a multiarch image (linux/amd64 + linux/arm64).
+ifeq ($(CONTAINER_TOOL),podman)
+	$(CONTAINER_TOOL) buildx build --platform=linux/amd64 --tag ${IMG}-amd64 .
+	$(CONTAINER_TOOL) buildx build --platform=linux/arm64 --tag ${IMG}-arm64 .
+	$(CONTAINER_TOOL) manifest create ${IMG}-manifest
+	$(CONTAINER_TOOL) manifest add ${IMG}-manifest ${IMG}-amd64
+	$(CONTAINER_TOOL) manifest add ${IMG}-manifest ${IMG}-arm64
+	$(CONTAINER_TOOL) manifest push ${IMG}-manifest docker://${IMG}
+	$(CONTAINER_TOOL) manifest rm ${IMG}-manifest
+else
+	$(CONTAINER_TOOL) buildx build --push --platform=linux/arm64,linux/amd64 --tag ${IMG} .
+endif
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -285,7 +294,7 @@ bundle: manifests kustomize operator-sdk ## Generate bundle manifests and metada
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(CONTAINER_TOOL) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
@@ -325,7 +334,7 @@ endif
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+	$(OPM) index add --container-tool $(CONTAINER_TOOL) --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
