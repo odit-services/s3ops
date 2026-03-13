@@ -11,3 +11,20 @@ spec:
   auth:
     accessKey: minioadmin
     secretKey: minioadmin
+---
+apiVersion: s3.odit.services/v1alpha1
+kind: S3Server
+metadata:
+  labels:
+    app.kubernetes.io/name: s3ops
+    app.kubernetes.io/managed-by: kustomize
+  name: s3server-rustfs-sample
+spec:
+  type: rustfs
+  endpoint: localhost:9000
+  tls: false
+  auth:
+    accessKey: rustfsadmin
+    secretKey: rustfsadmin
+  # providerOptions:
+  #   consoleEndpoint: http://localhost:9001  # optional: auto-derived from endpoint port if omitted
