@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.12.0](#v0.12.0)
 * [v0.11.0](#v0.11.0)
 * [v0.10.0](#v0.10.0)
 * [v0.9.1](#v0.9.1)
@@ -45,6 +46,31 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.12.0"></a>
+### [v0.12.0](https://github.com/odit-services/s3ops/compare/v0.11.0...v0.12.0)
+
+> 2026-03-13
+
+#### 🏡 Chore
+
+* update changelog
+* **Dockerfile:** update Go version to 1.25 in builder image
+* **build:** switch default container tool to podman
+* **crd:** regenerate CRD manifests with rustfs type
+* **deploy:** update deployment manifests
+* **samples:** add rustfs S3Server sample CR
+
+#### 📖 Documentation
+
+* **readme:** add IONOS and RustFS to supported backends table
+
+#### 🚀 Enhancements
+
+* **api:** add rustfs to S3ServerSpec type enum
+* **s3client:** wire rustfs provider into client factory
+* **s3client:** add RustFS admin client implementation
+
 
 <a name="v0.11.0"></a>
 ### [v0.11.0](https://github.com/odit-services/s3ops/compare/v0.10.0...v0.11.0)
