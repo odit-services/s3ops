@@ -87,6 +87,7 @@ spec:
                 enum:
                 - minio
                 - ionos
+                - rustfs
                 type: string
             required:
             - auth
