@@ -301,6 +301,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			s3User.Status.ProviderMeta = identifier
 			s3User.Status.Created = true
 			r.Status().Update(ctx, s3User)
+			userCreds.AccessKey = accessKey
+			userCreds.SecretKey = secretKey
+			userCreds.Identifier = identifier
 		}
 	} else {
 		r.logger.Debugw("User already exists", "name", req.Name, "namespace", req.Namespace)
