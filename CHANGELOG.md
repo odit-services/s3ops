@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.11.0](#v0.11.0)
 * [v0.10.0](#v0.10.0)
 * [v0.9.1](#v0.9.1)
 * [v0.9.0](#v0.9.0)
@@ -44,6 +45,29 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.11.0"></a>
+### [v0.11.0](https://github.com/odit-services/s3ops/compare/v0.10.0...v0.11.0)
+
+> 2026-03-13
+
+#### 🏡 Chore
+
+* update changelog
+* **Makefile:** update ENVTEST_K8S_VERSION to 1.32.0
+* **Makefile:** update tool versions for Kustomize, Controller Tools, Envtest, and GolangCI Lint
+* **crd:** update controller-gen version to v0.20.1 in CRDs
+* **deploy:** update deployment manifests
+* **go.mod:** update Go version and dependencies
+
+#### 🩹 Fixes
+
+* **Dockerfile:** use mirror for golang base image
+
+#### 💅 Refactors
+
+* **rbac:** streamline ClusterRole by consolidating resource verbs and finalizers
+
 
 <a name="v0.10.0"></a>
 ### [v0.10.0](https://github.com/odit-services/s3ops/compare/v0.9.1...v0.10.0)
