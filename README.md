@@ -22,7 +22,9 @@ A kubernetes operator to manage S3 resources.
 
 | Backend | S3Server | S3Bucket | S3Policy | S3User |
 |---------|----------|----------|----------|--------|
-| Minio   | Yes      | Yes      | Yes      | Yes    |
+| MinIO   | Yes      | Yes      | Yes      | Yes    |
+| IONOS   | Yes      | Yes      | Yes      | Yes    |
+| RustFS  | Yes      | Yes      | Yes      | Yes    |
 
 ## Deploy the operator
 
