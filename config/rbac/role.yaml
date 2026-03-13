@@ -27,83 +27,8 @@ rules:
   - s3.odit.services
   resources:
   - s3buckets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3buckets/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3buckets/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
   - s3policies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3policies/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3policies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
   - s3servers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3servers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
-  - s3servers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - s3.odit.services
-  resources:
   - s3users
   verbs:
   - create
@@ -116,12 +41,18 @@ rules:
 - apiGroups:
   - s3.odit.services
   resources:
+  - s3buckets/finalizers
+  - s3policies/finalizers
+  - s3servers/finalizers
   - s3users/finalizers
   verbs:
   - update
 - apiGroups:
   - s3.odit.services
   resources:
+  - s3buckets/status
+  - s3policies/status
+  - s3servers/status
   - s3users/status
   verbs:
   - get
