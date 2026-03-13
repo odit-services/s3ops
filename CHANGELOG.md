@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.12.1](#v0.12.1)
 * [v0.12.0](#v0.12.0)
 * [v0.11.0](#v0.11.0)
 * [v0.10.0](#v0.10.0)
@@ -46,6 +47,22 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.12.1"></a>
+### [v0.12.1](https://github.com/odit-services/s3ops/compare/v0.12.0...v0.12.1)
+
+> 2026-03-13
+
+#### 🏡 Chore
+
+* update changelog
+* **build:** auto-detect podman vs docker, fix multiarch push for podman
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **deployment:** update kube-rbac-proxy image reference to use registry.k8s.io
+
 
 <a name="v0.12.0"></a>
 ### [v0.12.0](https://github.com/odit-services/s3ops/compare/v0.11.0...v0.12.0)
