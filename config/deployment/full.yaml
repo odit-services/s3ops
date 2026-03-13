@@ -289,6 +289,7 @@ spec:
                 enum:
                 - minio
                 - ionos
+                - rustfs
                 type: string
             required:
             - auth
@@ -881,7 +882,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.11.0
+        image: ghcr.io/odit-services/s3ops:v0.12.0
         name: manager
         resources:
           limits:
