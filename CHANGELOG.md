@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.12.2](#v0.12.2)
 * [v0.12.1](#v0.12.1)
 * [v0.12.0](#v0.12.0)
 * [v0.11.0](#v0.11.0)
@@ -47,6 +48,21 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.12.2"></a>
+### [v0.12.2](https://github.com/odit-services/s3ops/compare/v0.12.1...v0.12.2)
+
+> 2026-03-13
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+
+#### 🩹 Fixes
+
+* **controller:** update user credentials in S3User status during reconciliation
+
 
 <a name="v0.12.1"></a>
 ### [v0.12.1](https://github.com/odit-services/s3ops/compare/v0.12.0...v0.12.1)
