@@ -62,10 +62,10 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 # CONTAINER_TOOL defines the container tool to be used for building images.
-# Be aware that the target commands are only tested with Docker which is
+# Be aware that the target commands are dockeronly tested with Docker which is
 # scaffolded by default. However, you might want to replace it to use other
 # tools. (i.e. podman)
-CONTAINER_TOOL ?= docker
+CONTAINER_TOOL ?= podman
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -146,7 +146,7 @@ docker-build: ## Build docker image with the manager.
 
 .PHONY: docker-build-multiarch
 docker-build-multiarch: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) buildx build --platform=linux/arm64,linux/amd64 --push --tag ${IMG} .
+	$(CONTAINER_TOOL) buildx build --platform=linux/arm64,linux/amd64 --tag ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
