@@ -70,7 +70,7 @@ func (c *IonosAdminClient) GetType() string {
 }
 
 func (c *IonosAdminClient) ListUsers() (IonosUserListResponse, error) {
-	req, err := http.NewRequest("GET", c.ApiUrl+"/um/users", nil)
+	req, err := http.NewRequest("GET", c.ApiUrl+"/um/users?depth=1", nil)
 	if err != nil {
 		return IonosUserListResponse{}, err
 	}
