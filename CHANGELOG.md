@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.12.3](#v0.12.3)
 * [v0.12.2](#v0.12.2)
 * [v0.12.1](#v0.12.1)
 * [v0.12.0](#v0.12.0)
@@ -48,6 +49,23 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.12.3"></a>
+### [v0.12.3](https://github.com/odit-services/s3ops/compare/v0.12.2...v0.12.3)
+
+> 2026-03-17
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+
+#### 💅 Refactors
+
+* **client:** add depth parameter to ListUsers request for improved user listing due to breaking change with ionos
+
 
 <a name="v0.12.2"></a>
 ### [v0.12.2](https://github.com/odit-services/s3ops/compare/v0.12.1...v0.12.2)
