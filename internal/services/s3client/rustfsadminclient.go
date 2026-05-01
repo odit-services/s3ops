@@ -133,7 +133,7 @@ func (c *RustfsAdminClient) doRequest(ctx context.Context, method, path string, 
 	}
 
 	// Reset reader for signing.
-	bodyReader.Seek(0, 0)
+	_, _ = bodyReader.Seek(0, 0)
 	_, err = c.signer.Sign(req, bodyReader, "s3", "us-east-1", time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("rustfs: failed to sign request: %w", err)
@@ -300,6 +300,6 @@ func (c *RustfsAdminClient) ApplyPolicyToUser(ctx context.Context, policyName st
 	if err != nil {
 		return err
 	}
-	defer updateResp.Body.Close()
+	defer func() { _ = updateResp.Body.Close() }()
 	return checkStatus(updateResp, "update-service-account")
 }

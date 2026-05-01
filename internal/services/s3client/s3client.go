@@ -10,6 +10,14 @@ import (
 	"github.com/odit-services/s3ops/api/v1alpha1"
 )
 
+const (
+	ServerTypeMinio  = "minio"
+	ServerTypeIonos  = "ionos"
+	ServerTypeRustfs = "rustfs"
+)
+
+const LogLevelInfo = "INFO"
+
 type S3ClientFactory interface {
 	NewClient(s3Server v1alpha1.S3Server) (S3Client, error)
 	NewAdminClient(s3Server v1alpha1.S3Server) (S3AdminClient, error)
@@ -18,14 +26,14 @@ type S3ClientFactoryDefault struct{}
 
 func (f *S3ClientFactoryDefault) NewClient(s3Server v1alpha1.S3Server) (S3Client, error) {
 	switch s3Server.Spec.Type {
-	case "minio":
+	case ServerTypeMinio:
 		return minio.New(s3Server.Spec.Endpoint, &minio.Options{
 			Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
 			Secure: s3Server.Spec.TLS,
 		})
-	case "ionos":
+	case ServerTypeIonos:
 		return NewIonosClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
-	case "rustfs":
+	case ServerTypeRustfs:
 		return minio.New(s3Server.Spec.Endpoint, &minio.Options{
 			Creds:  credentials.NewStaticV4(s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, ""),
 			Secure: s3Server.Spec.TLS,
@@ -37,11 +45,11 @@ func (f *S3ClientFactoryDefault) NewClient(s3Server v1alpha1.S3Server) (S3Client
 
 func (f *S3ClientFactoryDefault) NewAdminClient(s3Server v1alpha1.S3Server) (S3AdminClient, error) {
 	switch s3Server.Spec.Type {
-	case "minio":
+	case ServerTypeMinio:
 		return NewMinioAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS)
-	case "ionos":
+	case ServerTypeIonos:
 		return NewIonosAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.Auth.ApiToken, s3Server.Spec.TLS, s3Server.Spec.ProviderOptions)
-	case "rustfs":
+	case ServerTypeRustfs:
 		return NewRustfsAdminClient(s3Server.Spec.Endpoint, s3Server.Spec.Auth.AccessKey, s3Server.Spec.Auth.SecretKey, s3Server.Spec.TLS, s3Server.Spec.ProviderOptions)
 	default:
 		return nil, fmt.Errorf("not implemented")
