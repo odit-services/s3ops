@@ -8,6 +8,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+//nolint:dupl // Each webhook implements For(r) for different CR types
+
 // S3Policy implements webhook for S3Policy
 type S3Policy struct{}
 

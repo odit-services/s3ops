@@ -27,7 +27,7 @@ import (
 
 var _ = Describe("Cross-Namespace Validation Webhook", func() {
 	AfterEach(func() {
-		os.Unsetenv("ENABLE_CROSS_NAMESPACE_VALIDATION")
+		_ = os.Unsetenv("ENABLE_CROSS_NAMESPACE_VALIDATION")
 	})
 
 	Describe("validateServerRefCrossNamespace", func() {

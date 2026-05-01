@@ -8,6 +8,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+//nolint:dupl // Each webhook implements For(r) for different CR types
+
 // S3Bucket implements webhook for S3Bucket
 type S3Bucket struct{}
 
