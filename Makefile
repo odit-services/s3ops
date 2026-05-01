@@ -220,14 +220,14 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize-$(KUSTOMIZE_VERSION)
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_TOOLS_VERSION)
 ENVTEST ?= $(LOCALBIN)/setup-envtest-$(ENVTEST_VERSION)
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
-GITCHGLOG ?= $(LOCALBIN)/git-chglog-$(GITCHGLOG_VERSION)
+SHIKAI ?= $(LOCALBIN)/shikai-$(SHIKAI_VERSION)
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.8.1
 CONTROLLER_TOOLS_VERSION ?= v0.20.1
 ENVTEST_VERSION ?= release-0.24
 GOLANGCI_LINT_VERSION ?= v2.11.4
-GITCHGLOG_VERSION ?= v0.15.4
+SHIKAI_VERSION ?= v0.5.1
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -249,10 +249,10 @@ golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,${GOLANGCI_LINT_VERSION})
 
-.PHONY: git-chglog
-git-chglog: $(GITCHGLOG) ## Download git-chglog locally if necessary.
-$(GITCHGLOG): $(LOCALBIN)
-	$(call go-install-tool,$(GITCHGLOG),github.com/git-chglog/git-chglog/cmd/git-chglog,$(GITCHGLOG_VERSION))
+.PHONY: shikai
+shikai: $(SHIKAI) ## Download shikai locally if necessary.
+$(SHIKAI): $(LOCALBIN)
+	$(call go-install-tool,$(SHIKAI),github.com/nicolaiort/shikai,$(SHIKAI_VERSION))
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)
@@ -341,27 +341,13 @@ catalog-build: opm ## Build a catalog image.
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
-.PHONY: changelog
-changelog: git-chglog ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(GITCHGLOG) -o CHANGELOG.md
-	git add CHANGELOG.md
-	git commit -m "chore: update changelog"
-
-.PHONY: tag
-tag: ## Tag the current commit with the version number.
-	git tag -a v$(VERSION) -m "Release v$(VERSION)"
-
 .PHONY: build-yaml
 build-yaml: kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} && cd ../..
 	$(KUSTOMIZE) build config/default/ > config/deployment/full.yaml
 	$(KUSTOMIZE) build config/crd/ > config/deployment/crds.yaml
 	git add config/deployment/full.yaml config/deployment/crds.yaml config/manager/kustomization.yaml
-	git commit -m "chore(deploy): update deployment manifests"
-
-.PHONY: git-push
-git-push:
-	git push --follow-tags
 
 .PHONY: release
-release: build-yaml tag changelog git-push  ## Generate a changelog and tag the current commit with the version number.
+release: shikai ## Create a release with shikai.
+	$(SHIKAI) --push
