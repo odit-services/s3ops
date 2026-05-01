@@ -62,6 +62,9 @@ spec:
         - /manager
         args:
         - --leader-elect
+        env:
+        - name: ENABLE_CROSS_NAMESPACE_VALIDATION
+          value: "false"
         image: controller:latest
         name: manager
         securityContext:
