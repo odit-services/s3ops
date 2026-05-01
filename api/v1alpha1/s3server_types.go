@@ -81,13 +81,14 @@ type S3ServerAuthSpec struct {
 	ApiTokenSecretKey string `json:"apiTokenSecretKey" yaml:"apiTokenSecretKey"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Online",type="boolean",JSONPath=".status.online",description="Is the server online"
 // +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="The current state of the resource"
 // +kubebuilder:printcolumn:name="LastAction",type="string",JSONPath=".status.lastAction",description="The last action taken on the resource"
 
 // +kubebuilder:webhook:path=/validate-s3-odit-services-v1alpha1-s3server,mutating=false,failurePolicy=fail,sideEffects=None,groups=s3.odit.services,resources=s3servers,verbs=create;update,versions=v1alpha1,name=vs3server.s3.odit.services,admissionReviewVersions=v1
+
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // S3Server is the Schema for the s3servers API
 type S3Server struct {
