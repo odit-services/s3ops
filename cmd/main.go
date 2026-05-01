@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"os"
+	"strconv"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -36,6 +37,7 @@ import (
 
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
 	"github.com/odit-services/s3ops/internal/controller"
+	s3webhook "github.com/odit-services/s3ops/internal/webhook"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -57,6 +59,7 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var enableCrossNamespaceValidation bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -66,11 +69,19 @@ func main() {
 		"If set the metrics endpoint is served securely")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.BoolVar(&enableCrossNamespaceValidation, "enable-cross-namespace-validation", false,
+		"Enable cross-namespace ServerRef validation (not enforced by default)")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+
+	if envVal := os.Getenv("ENABLE_CROSS_NAMESPACE_VALIDATION"); envVal != "" {
+		if val, err := strconv.ParseBool(envVal); err == nil {
+			enableCrossNamespaceValidation = val
+		}
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
@@ -122,6 +133,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Set ENABLE_CROSS_NAMESPACE_VALIDATION env var based on flag for webhook access
+	os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", strconv.FormatBool(enableCrossNamespaceValidation))
+
 	if err = (&controller.S3ServerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -151,6 +165,20 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
+
+	// Register webhooks
+	if err = (&s3webhook.S3Bucket{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "S3Bucket")
+		os.Exit(1)
+	}
+	if err = (&s3webhook.S3User{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "S3User")
+		os.Exit(1)
+	}
+	if err = (&s3webhook.S3Policy{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "S3Policy")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
