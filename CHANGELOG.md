@@ -5,6 +5,7 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.12.4](#v0.12.4)
 * [v0.12.3](#v0.12.3)
 * [v0.12.2](#v0.12.2)
 * [v0.12.1](#v0.12.1)
@@ -49,6 +50,19 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 * [v0.1.0](#v0.1.0)
 
 ## Changes
+
+<a name="v0.12.4"></a>
+### [v0.12.4](https://github.com/odit-services/s3ops/compare/v0.12.3...v0.12.4)
+
+> 2026-05-01
+
+#### 🏡 Chore
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deps:** update go.sum with updated checksums
+* **deps:** update go.mod with new dependency versions
+
 
 <a name="v0.12.3"></a>
 ### [v0.12.3](https://github.com/odit-services/s3ops/compare/v0.12.2...v0.12.3)
