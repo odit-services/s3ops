@@ -102,7 +102,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3Server)).To(Succeed())
-		serverReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = serverReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3Server.Name,
 				Namespace: s3Server.Namespace,
@@ -136,7 +136,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerSecretauth)).To(Succeed())
-		serverReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = serverReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3ServerSecretauth.Name,
 				Namespace: s3ServerSecretauth.Namespace,
@@ -160,7 +160,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
-		serverReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = serverReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3ServerBroken.Name,
 				Namespace: s3ServerBroken.Namespace,
@@ -380,18 +380,18 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 					}
 					Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
 
-					_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					_, _ = testReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
 					})
 					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
 
-					policyReconciler.Reconcile(ctx, ctrl.Request{
+					_, _ = policyReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
 					})
 					Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
 					s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
 
-					userReconciler.Reconcile(ctx, ctrl.Request{
+					_, _ = userReconciler.Reconcile(ctx, ctrl.Request{
 						NamespacedName: nameSpacedName,
 					})
 					Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
@@ -673,7 +673,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())
 				s3MockEnv.ExistingPolicies = append(s3MockEnv.ExistingPolicies, s3Policy.Name)
 
-				userReconciler.Reconcile(ctx, ctrl.Request{
+				_, _ = userReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3User)).To(Succeed())
@@ -684,10 +684,10 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
 				})
-				policyReconciler.Reconcile(ctx, ctrl.Request{
+				_, _ = policyReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
 				})
-				userReconciler.Reconcile(ctx, ctrl.Request{
+				_, _ = userReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
 				})
 			})

@@ -45,6 +45,7 @@ type S3UserReconciler struct {
 	S3ClientFactory s3client.S3ClientFactory
 }
 
+//nolint:dupl // Each controller has type-specific HandleError for status updates
 func (r *S3UserReconciler) HandleError(s3User *s3oditservicesv1alpha1.S3User, err error) (ctrl.Result, error) {
 	r.logger.Errorw("Failed to reconcile s3User", "name", s3User.Name, "namespace", s3User.Namespace, "error", err)
 	s3User.Status = s3oditservicesv1alpha1.S3UserStatus{
@@ -138,7 +139,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			Identifier: string(secret.Data["identifier"]),
 		}
 
-		if s3AdminClient.GetType() != "ionos" && s3User.Status.UserIdentifier == "" {
+		if s3AdminClient.GetType() != s3client.ServerTypeIonos && s3User.Status.UserIdentifier == "" {
 			s3User.Status.UserIdentifier = userCreds.AccessKey
 			err = r.Status().Update(ctx, s3User)
 			if err != nil {
@@ -272,7 +273,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			s3User.Status.SecretRef = secret.Name
 			s3User.Status.UserIdentifier = pendingUserId
 			s3User.Status.Created = true
-			r.Status().Update(ctx, s3User)
+			_ = r.Status().Update(ctx, s3User)
 		} else {
 			identifier, accessKey, secretKey, err := s3AdminClient.MakeUser(ctx, s3User.Name)
 			if err != nil {
@@ -300,7 +301,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			s3User.Status.UserIdentifier = identifier
 			s3User.Status.ProviderMeta = identifier
 			s3User.Status.Created = true
-			r.Status().Update(ctx, s3User)
+			_ = r.Status().Update(ctx, s3User)
 			userCreds.AccessKey = accessKey
 			userCreds.SecretKey = secretKey
 			userCreds.Identifier = identifier
@@ -317,7 +318,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// For Ionos servers, policies are created and managed by the S3Bucket controller
 	// Skip policy processing for Ionos servers
-	if s3AdminClient.GetType() == "ionos" {
+	if s3AdminClient.GetType() == s3client.ServerTypeIonos {
 		r.logger.Infow("Skipping policy processing for Ionos server", "name", req.Name, "namespace", req.Namespace)
 	} else {
 		for _, policyRef := range s3User.Spec.PolicyRefs {
@@ -377,7 +378,7 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *S3UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "INFO"
+		logLevel = LogLevelInfo
 	}
 
 	var zapLogLevel zapcore.Level

@@ -48,6 +48,7 @@ type S3BucketReconciler struct {
 	S3ClientFactory s3client.S3ClientFactory
 }
 
+//nolint:dupl // Each controller has type-specific HandleError for status updates
 func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Bucket, err error) (ctrl.Result, error) {
 	r.logger.Errorw("Failed to reconcile S3Bucket", "name", s3Bucket.Name, "namespace", s3Bucket.Namespace, "error", err)
 	s3Bucket.Status = s3oditservicesv1alpha1.S3BucketStatus{
@@ -477,7 +478,7 @@ func (r *S3BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
 	zapLogger, _ := zapConfig.Build()
-	defer zapLogger.Sync()
+	defer func() { _ = zapLogger.Sync() }()
 	r.logger = zapLogger.Sugar()
 
 	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}

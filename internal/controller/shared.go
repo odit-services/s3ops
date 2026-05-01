@@ -20,15 +20,6 @@ func getSecret(ctx context.Context, r client.Client, namespace string, name stri
 	return secret, nil
 }
 
-func createSecret(ctx context.Context, r client.Client, secret *corev1.Secret) error {
-	err := r.Create(ctx, secret)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // upsertSecret creates the secret if it does not exist yet, or updates it in
 // place if it does. This is needed when a user is recreated after being
 // deleted from the backing S3 provider: the Kubernetes secret already exists

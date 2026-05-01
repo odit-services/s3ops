@@ -33,8 +33,11 @@ import (
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	s3oditservicesv1alpha1 "github.com/odit-services/s3ops/api/v1alpha1"
-	s3client "github.com/odit-services/s3ops/internal/services/s3client"
+	"github.com/odit-services/s3ops/internal/services/s3client"
 )
+
+// LogLevelInfo is the default log level when LOG_LEVEL env var is not set
+const LogLevelInfo = "INFO"
 
 // S3PolicyReconciler reconciles a S3Policy object
 type S3PolicyReconciler struct {
@@ -44,6 +47,7 @@ type S3PolicyReconciler struct {
 	S3ClientFactory s3client.S3ClientFactory
 }
 
+//nolint:dupl // Each controller has type-specific HandleError for status updates
 func (r *S3PolicyReconciler) HandleError(s3Policy *s3oditservicesv1alpha1.S3Policy, err error) (ctrl.Result, error) {
 	r.logger.Errorw("Failed to reconcile S3Policy", "name", s3Policy.Name, "namespace", s3Policy.Namespace, "error", err)
 	s3Policy.Status = s3oditservicesv1alpha1.S3PolicyStatus{
@@ -227,7 +231,7 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *S3PolicyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "INFO"
+		logLevel = LogLevelInfo
 	}
 
 	var zapLogLevel zapcore.Level
@@ -239,7 +243,7 @@ func (r *S3PolicyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
 	zapLogger, _ := zapConfig.Build()
-	defer zapLogger.Sync()
+	defer func() { _ = zapLogger.Sync() }()
 	r.logger = zapLogger.Sugar()
 
 	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}

@@ -239,7 +239,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 					Expect(s3Server.Status.Online).To(BeTrue())
 				})
 			})
-			When("A new invalid s3server is with an non-existant domain", func() {
+			When("A new invalid s3server is with an non-existent domain", func() {
 				var err error
 				var s3Server s3oditservicesv1alpha1.S3Server
 				BeforeAll(func() {
@@ -407,7 +407,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
 				Expect(err).ToNot(HaveOccurred())
 
-				testReconciler.Reconcile(ctx, reconcile.Request{
+				_, _ = testReconciler.Reconcile(ctx, reconcile.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())
@@ -463,7 +463,7 @@ var _ = Describe("S3Server Controller", Ordered, func() {
 				Expect(k8sClient.Create(ctx, &s3Server)).To(Succeed())
 				Expect(err).ToNot(HaveOccurred())
 
-				testReconciler.Reconcile(ctx, reconcile.Request{
+				_, _ = testReconciler.Reconcile(ctx, reconcile.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Server)).To(Succeed())

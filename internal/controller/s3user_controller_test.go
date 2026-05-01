@@ -135,7 +135,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3Policy)).To(Succeed())
-		s3PolicyReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = s3PolicyReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3Policy.Name,
 				Namespace: s3Policy.Namespace,

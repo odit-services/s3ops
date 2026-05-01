@@ -44,6 +44,7 @@ type S3ServerReconciler struct {
 	S3ClientFactory s3client.S3ClientFactory
 }
 
+//nolint:dupl // Each controller has type-specific HandleError for status updates
 func (r *S3ServerReconciler) HandleError(s3Server *s3oditservicesv1alpha1.S3Server, err error) (ctrl.Result, error) {
 	r.logger.Errorw("Failed to reconcile s3Server", "name", s3Server.Name, "namespace", s3Server.Namespace, "error", err)
 	s3Server.Status = s3oditservicesv1alpha1.S3ServerStatus{
@@ -122,7 +123,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return r.HandleError(s3Server, err)
 	}
 
-	minioClient.HealthCheck(1 * time.Second)
+	_, _ = minioClient.HealthCheck(1 * time.Second)
 	time.Sleep(1 * time.Second)
 
 	minioOnline := minioClient.IsOnline()
@@ -171,7 +172,7 @@ func (r *S3ServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
 	zapLogger, _ := zapConfig.Build()
-	defer zapLogger.Sync()
+	defer func() { _ = zapLogger.Sync() }()
 	r.logger = zapLogger.Sugar()
 
 	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}
