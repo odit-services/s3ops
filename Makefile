@@ -48,7 +48,7 @@ endif
 
 # Set the Operator SDK version to use. By default, what is installed on the system is used.
 # This is useful for CI or a project to utilize a specific version of the operator-sdk toolkit.
-OPERATOR_SDK_VERSION ?= v1.36.1
+OPERATOR_SDK_VERSION ?= v1.42.2
 # Image URL to use all building/pushing image targets
 IMG ?= ghcr.io/odit-services/s3ops:v$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -225,7 +225,7 @@ GITCHGLOG ?= $(LOCALBIN)/git-chglog-$(GITCHGLOG_VERSION)
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.8.1
 CONTROLLER_TOOLS_VERSION ?= v0.20.1
-ENVTEST_VERSION ?= release-0.23
+ENVTEST_VERSION ?= release-0.24
 GOLANGCI_LINT_VERSION ?= v1.64.8
 GITCHGLOG_VERSION ?= v0.15.4
 
