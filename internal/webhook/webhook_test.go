@@ -165,3 +165,55 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 		})
 	})
 })
+
+var _ = Describe("S3Server Auth Validation", func() {
+	Describe("validateAuth", func() {
+		It("should reject when no auth method is provided", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{}
+			err := validateAuth(auth)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("at least one authentication method"))
+		})
+
+		It("should accept accessKey + secretKey", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{
+				AccessKey: "key",
+				SecretKey: "secret",
+			}
+			err := validateAuth(auth)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should accept existingSecretRef", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{
+				ExistingSecretRef: "my-secret",
+			}
+			err := validateAuth(auth)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should accept apiToken", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{
+				ApiToken: "token",
+			}
+			err := validateAuth(auth)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should reject when only accessKey is provided", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{
+				AccessKey: "key",
+			}
+			err := validateAuth(auth)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should reject when only secretKey is provided", func() {
+			auth := &s3oditservicesv1alpha1.S3ServerAuthSpec{
+				SecretKey: "secret",
+			}
+			err := validateAuth(auth)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})

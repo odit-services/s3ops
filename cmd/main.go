@@ -179,6 +179,10 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "S3Policy")
 		os.Exit(1)
 	}
+	if err = (&s3webhook.S3Server{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "S3Server")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
