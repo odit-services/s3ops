@@ -41,7 +41,7 @@ type S3UserStatus struct {
 	CrStatus       `json:",inline" yaml:",inline"`
 	Created        bool   `json:"created,omitempty"`
 	SecretRef      string `json:"secretRef,omitempty"`
-	ProviderMeta   string `json:"providerMeta,"`            // This can be used to store provider-specific metadata, like user ID or ARN
+	ProviderMeta   string `json:"providerMeta,omitempty" yaml:"providerMeta,omitempty"` // This can be used to store provider-specific metadata, like user ID or ARN
 	UserIdentifier string `json:"userIdentifier,omitempty"` // This can be used to store a unique identifier for the user, like an email or username
 }
 
