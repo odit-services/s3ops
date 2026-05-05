@@ -227,7 +227,7 @@ KUSTOMIZE_VERSION ?= v5.8.1
 CONTROLLER_TOOLS_VERSION ?= v0.20.1
 ENVTEST_VERSION ?= release-0.24
 GOLANGCI_LINT_VERSION ?= v2.11.4
-SHIKAI_VERSION ?= v1.0.1
+SHIKAI_VERSION ?= v1.3.1
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
