@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -147,7 +148,21 @@ func checkStatus(resp *http.Response, operation string) error {
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
 	}
-	return fmt.Errorf("rustfs: %s returned HTTP %d", operation, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("rustfs: %s returned HTTP %d and the error body could not be read: %w", operation, resp.StatusCode, err)
+	}
+
+	bodyText := strings.TrimSpace(string(body))
+	if bodyText == "" {
+		return fmt.Errorf("rustfs: %s returned HTTP %d", operation, resp.StatusCode)
+	}
+	if len(bodyText) > 1024 {
+		bodyText = bodyText[:1024] + "...(truncated)"
+	}
+
+	return fmt.Errorf("rustfs: %s returned HTTP %d: %s", operation, resp.StatusCode, bodyText)
 }
 
 // UserExists checks whether a service account with the given access key exists.
@@ -194,7 +209,7 @@ func (c *RustfsAdminClient) MakeUser(ctx context.Context, name string) (string, 
 	}
 	defer resp.Body.Close()
 	if err := checkStatus(resp, "add-service-accounts"); err != nil {
-		return "", "", "", err
+		return "", "", "", fmt.Errorf("%w (name=%q expiration=%q accessKeyLength=%d)", err, name, reqBody.Expiration, len(accessKey))
 	}
 
 	var result rustfsAddServiceAccountResp
