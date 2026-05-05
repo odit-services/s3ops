@@ -59,6 +59,7 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var enableWebhooks bool
 	var enableCrossNamespaceValidation bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -69,6 +70,8 @@ func main() {
 		"If set the metrics endpoint is served securely")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.BoolVar(&enableWebhooks, "enable-webhooks", false,
+		"If set, admission webhooks will be registered and the webhook server will be started")
 	flag.BoolVar(&enableCrossNamespaceValidation, "enable-cross-namespace-validation", false,
 		"Enable cross-namespace ServerRef validation (not enforced by default)")
 	opts := zap.Options{
@@ -80,6 +83,11 @@ func main() {
 	if envVal := os.Getenv("ENABLE_CROSS_NAMESPACE_VALIDATION"); envVal != "" {
 		if val, err := strconv.ParseBool(envVal); err == nil {
 			enableCrossNamespaceValidation = val
+		}
+	}
+	if envVal := os.Getenv("ENABLE_WEBHOOKS"); envVal != "" {
+		if val, err := strconv.ParseBool(envVal); err == nil {
+			enableWebhooks = val
 		}
 	}
 
@@ -101,18 +109,13 @@ func main() {
 		tlsOpts = append(tlsOpts, disableHTTP2)
 	}
 
-	webhookServer := webhook.NewServer(webhook.Options{
-		TLSOpts: tlsOpts,
-	})
-
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	managerOptions := ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress:   metricsAddr,
 			SecureServing: secureMetrics,
 			TLSOpts:       tlsOpts,
 		},
-		WebhookServer:          webhookServer,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "4015fc7e.s3.odit.services",
@@ -127,7 +130,14 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
-	})
+	}
+	if enableWebhooks {
+		managerOptions.WebhookServer = webhook.NewServer(webhook.Options{
+			TLSOpts: tlsOpts,
+		})
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), managerOptions)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
@@ -135,6 +145,7 @@ func main() {
 
 	// Set ENABLE_CROSS_NAMESPACE_VALIDATION env var based on flag for webhook access
 	os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", strconv.FormatBool(enableCrossNamespaceValidation))
+	os.Setenv("ENABLE_WEBHOOKS", strconv.FormatBool(enableWebhooks))
 
 	if err = (&controller.S3ServerReconciler{
 		Client: mgr.GetClient(),
@@ -166,22 +177,24 @@ func main() {
 	}
 	//+kubebuilder:scaffold:builder
 
-	// Register webhooks
-	if err = (&s3webhook.S3Bucket{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "S3Bucket")
-		os.Exit(1)
-	}
-	if err = (&s3webhook.S3User{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "S3User")
-		os.Exit(1)
-	}
-	if err = (&s3webhook.S3Policy{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "S3Policy")
-		os.Exit(1)
-	}
-	if err = (&s3webhook.S3Server{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "S3Server")
-		os.Exit(1)
+	// Register webhooks only when explicitly enabled.
+	if enableWebhooks {
+		if err = (&s3webhook.S3Bucket{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "S3Bucket")
+			os.Exit(1)
+		}
+		if err = (&s3webhook.S3User{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "S3User")
+			os.Exit(1)
+		}
+		if err = (&s3webhook.S3Policy{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "S3Policy")
+			os.Exit(1)
+		}
+		if err = (&s3webhook.S3Server{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "S3Server")
+			os.Exit(1)
+		}
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
