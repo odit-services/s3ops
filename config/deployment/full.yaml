@@ -216,20 +216,7 @@ spec:
     singular: s3server
   scope: Namespaced
   versions:
-  - additionalPrinterColumns:
-    - description: Is the server online
-      jsonPath: .status.online
-      name: Online
-      type: boolean
-    - description: The current state of the resource
-      jsonPath: .status.state
-      name: State
-      type: string
-    - description: The last action taken on the resource
-      jsonPath: .status.lastAction
-      name: LastAction
-      type: string
-    name: v1alpha1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: S3Server is the Schema for the s3servers API
@@ -411,8 +398,6 @@ spec:
                 type: string
               userIdentifier:
                 type: string
-            required:
-            - providerMeta
             type: object
         type: object
     served: true
@@ -882,7 +867,10 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/odit-services/s3ops:v0.12.4
+        env:
+        - name: ENABLE_CROSS_NAMESPACE_VALIDATION
+          value: "false"
+        image: ghcr.io/odit-services/s3ops:v0.13.0
         name: manager
         resources:
           limits:
