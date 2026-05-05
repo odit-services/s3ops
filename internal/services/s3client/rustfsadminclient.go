@@ -3,6 +3,7 @@ package s3client
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,7 +22,20 @@ import (
 const (
 	rustfsAdminPrefix  = "/rustfs/admin/v3"
 	rustfsNeverExpires = "9999-01-01T00:00:00.000Z"
+	rustfsNameMaxLen   = 31
 )
+
+func shortenRustfsServiceAccountName(name string) string {
+	if len(name) <= rustfsNameMaxLen {
+		return name
+	}
+
+	sum := sha1.Sum([]byte(name))
+	suffix := fmt.Sprintf("%x", sum[:])[:6]
+	prefixLen := rustfsNameMaxLen - len(suffix) - 1
+
+	return fmt.Sprintf("%s-%s", name[:prefixLen], suffix)
+}
 
 // RustfsAdminClient implements S3AdminClient for RustFS.
 //
@@ -194,7 +208,7 @@ func (c *RustfsAdminClient) MakeUser(ctx context.Context, name string) (string, 
 	reqBody := rustfsAddServiceAccountReq{
 		AccessKey:   accessKey,
 		SecretKey:   secretKey,
-		Name:        name,
+		Name:        shortenRustfsServiceAccountName(name),
 		Description: "",
 		Expiration:  rustfsNeverExpires,
 	}
