@@ -5,6 +5,1049 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [v0.13.0](#v0.13.0)
+* [v0.12.4](#v0.12.4)
+* [v0.12.3](#v0.12.3)
+* [v0.12.2](#v0.12.2)
+* [v0.12.1](#v0.12.1)
+* [v0.12.0](#v0.12.0)
+* [v0.11.0](#v0.11.0)
+* [v0.10.0](#v0.10.0)
+* [v0.9.1](#v0.9.1)
+* [v0.9.0](#v0.9.0)
+* [v0.8.17](#v0.8.17)
+* [v0.8.16](#v0.8.16)
+* [v0.8.15](#v0.8.15)
+* [v0.8.14](#v0.8.14)
+* [v0.8.13](#v0.8.13)
+* [v0.8.12](#v0.8.12)
+* [v0.8.11](#v0.8.11)
+* [v0.8.10](#v0.8.10)
+* [v0.8.9](#v0.8.9)
+* [v0.8.8](#v0.8.8)
+* [v0.8.7](#v0.8.7)
+* [v0.8.6](#v0.8.6)
+* [v0.8.5](#v0.8.5)
+* [v0.8.4](#v0.8.4)
+* [v0.8.3](#v0.8.3)
+* [v0.8.2](#v0.8.2)
+* [v0.8.1](#v0.8.1)
+* [v0.8.0](#v0.8.0)
+* [v0.7.1](#v0.7.1)
+* [v0.7.0](#v0.7.0)
+* [v0.6.0](#v0.6.0)
+* [v0.5.1](#v0.5.1)
+* [v0.5.0](#v0.5.0)
+* [v0.4.3](#v0.4.3)
+* [v0.4.2](#v0.4.2)
+* [v0.4.1](#v0.4.1)
+* [v0.4.0](#v0.4.0)
+* [v0.3.1](#v0.3.1)
+* [v0.3.0](#v0.3.0)
+* [v0.2.3](#v0.2.3)
+* [v0.2.2](#v0.2.2)
+* [v0.2.1](#v0.2.1)
+* [v0.2.0](#v0.2.0)
+* [v0.1.0](#v0.1.0)
+
+## Changes
+
+<a name="v0.13.0"></a>
+### [v0.13.0](https://github.com/odit-services/s3ops/compare/v0.12.4...v0.13.0)
+
+> 2026-05-05
+
+
+
+* add missing internal/webhook directory to Dockerfile
+* update Go version in Dockerfile to 1.26
+* **api:** update ProviderMeta json tag to be optional
+* **controller:** add errcheck fixes and nolint for duplicate code
+* **deployment:** remove additionalPrinterColumns and update image tag to v0.13.0
+* **makefile:** pin shikai to v1.0.1
+* **rustfsadminclient:** enhance error handling in checkStatus and MakeUser methods
+* **services:** add errcheck fixes and extract server type constants
+* **webhook:** add nolint dupl and errcheck fixes
+
+
+
+* update changelog
+* **api:** remove unused DeepCopyObject method from S3Server
+* **crd:** add subresources to S3Server CRD for status management
+* **deploy:** enable S3Server webhook manifests
+* **deploy:** enable webhook manifests and add validation env var
+* **deps:** upgrade golangci-lint to v2.11.4
+* **deps:** bump tool versions
+* **makefile:** update SHIKAI_VERSION to v1.3.1
+* **release:** add shikai hook config
+
+
+
+* trigger build with package permissions fixed
+* re-run with package access
+* re-run workflow
+
+
+
+* **api:** add webhook marker for S3Server
+* **api:** add webhook markers for S3Bucket/S3User/S3Policy
+* **controller:** register S3Server webhook and add auth validation tests
+* **controller:** register webhooks and add cross-namespace validation flag
+* **webhook:** add S3Server auth validation webhook
+* **webhook:** add cross-namespace ServerRef validation
+
+
+
+* Removed on-client image build/release in favor of actions build
+* **makefile:** replace release flow with shikai
+
+
+
+* **webhook:** add missing newline at end of s3server_webhook.go
+* **webhook:** Lint+format
+
+
+
+* **webhook:** add unit tests for cross-namespace validation
+
+
+<a name="v0.12.4"></a>
+### [v0.12.4](https://github.com/odit-services/s3ops/compare/v0.12.3...v0.12.4)
+
+> 2026-05-01
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deps:** update go.sum with updated checksums
+* **deps:** update go.mod with new dependency versions
+
+
+<a name="v0.12.3"></a>
+### [v0.12.3](https://github.com/odit-services/s3ops/compare/v0.12.2...v0.12.3)
+
+> 2026-03-17
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+
+
+
+* **client:** add depth parameter to ListUsers request for improved user listing due to breaking change with ionos
+
+
+<a name="v0.12.2"></a>
+### [v0.12.2](https://github.com/odit-services/s3ops/compare/v0.12.1...v0.12.2)
+
+> 2026-03-13
+
+
+
+* **controller:** update user credentials in S3User status during reconciliation
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.12.1"></a>
+### [v0.12.1](https://github.com/odit-services/s3ops/compare/v0.12.0...v0.12.1)
+
+> 2026-03-13
+
+
+
+* **deployment:** update kube-rbac-proxy image reference to use registry.k8s.io
+
+
+
+* update changelog
+* **build:** auto-detect podman vs docker, fix multiarch push for podman
+* **deploy:** update deployment manifests
+
+
+<a name="v0.12.0"></a>
+### [v0.12.0](https://github.com/odit-services/s3ops/compare/v0.11.0...v0.12.0)
+
+> 2026-03-13
+
+
+
+* update changelog
+* **Dockerfile:** update Go version to 1.25 in builder image
+* **build:** switch default container tool to podman
+* **crd:** regenerate CRD manifests with rustfs type
+* **deploy:** update deployment manifests
+* **samples:** add rustfs S3Server sample CR
+
+
+
+* **readme:** add IONOS and RustFS to supported backends table
+
+
+
+* **api:** add rustfs to S3ServerSpec type enum
+* **s3client:** wire rustfs provider into client factory
+* **s3client:** add RustFS admin client implementation
+
+
+<a name="v0.11.0"></a>
+### [v0.11.0](https://github.com/odit-services/s3ops/compare/v0.10.0...v0.11.0)
+
+> 2026-03-13
+
+
+
+* **Dockerfile:** use mirror for golang base image
+
+
+
+* update changelog
+* **Makefile:** update ENVTEST_K8S_VERSION to 1.32.0
+* **Makefile:** update tool versions for Kustomize, Controller Tools, Envtest, and GolangCI Lint
+* **crd:** update controller-gen version to v0.20.1 in CRDs
+* **deploy:** update deployment manifests
+* **go.mod:** update Go version and dependencies
+
+
+
+* **rbac:** streamline ClusterRole by consolidating resource verbs and finalizers
+
+
+<a name="v0.10.0"></a>
+### [v0.10.0](https://github.com/odit-services/s3ops/compare/v0.9.1...v0.10.0)
+
+> 2026-03-09
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.9.1"></a>
+### [v0.9.1](https://github.com/odit-services/s3ops/compare/v0.9.0...v0.9.1)
+
+> 2025-11-05
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.9.0"></a>
+### [v0.9.0](https://github.com/odit-services/s3ops/compare/v0.8.17...v0.9.0)
+
+> 2025-08-15
+
+
+
+* **controller:** update IAM policy to allow all S3 actions for bucket location
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.17"></a>
+### [v0.8.17](https://github.com/odit-services/s3ops/compare/v0.8.16...v0.8.17)
+
+> 2025-08-15
+
+
+
+* **controller:** update IAM policy to use array format for Resource
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.16"></a>
+### [v0.8.16](https://github.com/odit-services/s3ops/compare/v0.8.15...v0.8.16)
+
+> 2025-08-15
+
+
+
+* **controller:** update IAM policy to use object format for Principal
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.15"></a>
+### [v0.8.15](https://github.com/odit-services/s3ops/compare/v0.8.14...v0.8.15)
+
+> 2025-08-15
+
+
+
+* **controller:** update IAM policy actions to use array format for consistency
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.14"></a>
+### [v0.8.14](https://github.com/odit-services/s3ops/compare/v0.8.13...v0.8.14)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3client:** improve MakeBucket method by extracting bucket configuration
+
+
+<a name="v0.8.13"></a>
+### [v0.8.13](https://github.com/odit-services/s3ops/compare/v0.8.12...v0.8.13)
+
+> 2025-08-15
+
+
+
+* **s3client:** improve error handling in NewIonosClient and BucketExists methods
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.12"></a>
+### [v0.8.12](https://github.com/odit-services/s3ops/compare/v0.8.11...v0.8.12)
+
+> 2025-08-15
+
+
+
+* **s3client:** enable object lock configuration when creating a bucket
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.11"></a>
+### [v0.8.11](https://github.com/odit-services/s3ops/compare/v0.8.10...v0.8.11)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **api:** correct DeepCopyInto implementation for S3Server and handle ProviderOptions
+* **deploy:** update deployment manifests
+
+
+
+* **s3bucket:** add Ionos policy creation and user secret handling in reconcile
+
+
+<a name="v0.8.10"></a>
+### [v0.8.10](https://github.com/odit-services/s3ops/compare/v0.8.9...v0.8.10)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3client:** implement policy management methods in IonosAdminClient
+* **s3user:** include user identifier in S3 user credentials structure
+
+
+<a name="v0.8.9"></a>
+### [v0.8.9](https://github.com/odit-services/s3ops/compare/v0.8.8...v0.8.9)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* add Ionos policy for S3 bucket access control
+* log user creation details and include identifier in secret
+
+
+<a name="v0.8.8"></a>
+### [v0.8.8](https://github.com/odit-services/s3ops/compare/v0.8.7...v0.8.8)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* add delays to ensure user creation and group addition completion
+
+
+<a name="v0.8.7"></a>
+### [v0.8.7](https://github.com/odit-services/s3ops/compare/v0.8.6...v0.8.7)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3user:** add ProviderMeta to S3User status after reconciliation
+
+
+<a name="v0.8.6"></a>
+### [v0.8.6](https://github.com/odit-services/s3ops/compare/v0.8.5...v0.8.6)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3client:** add functionality to add user to group after creation
+
+
+<a name="v0.8.5"></a>
+### [v0.8.5](https://github.com/odit-services/s3ops/compare/v0.8.4...v0.8.5)
+
+> 2025-08-15
+
+
+
+* **s3server:** remove error handling for Minio health check
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3client:** add providerOptions to IonosAdminClient and update instantiation feat(s3server): add optional providerOptions field to S3ServerSpec
+
+
+<a name="v0.8.4"></a>
+### [v0.8.4](https://github.com/odit-services/s3ops/compare/v0.8.3...v0.8.4)
+
+> 2025-08-15
+
+
+
+* **s3client:** improve error message for S3 key creation in MakeUser function
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.3"></a>
+### [v0.8.3](https://github.com/odit-services/s3ops/compare/v0.8.2...v0.8.3)
+
+> 2025-08-15
+
+
+
+* **s3client:** remove logging from Ionos client generation for cleaner output
+* **s3client:** improve HTTP response status code checks for user operations
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.2"></a>
+### [v0.8.2](https://github.com/odit-services/s3ops/compare/v0.8.1...v0.8.2)
+
+> 2025-08-15
+
+
+
+* **s3client:** update Ionos client generation to use endpoint type
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.8.1"></a>
+### [v0.8.1](https://github.com/odit-services/s3ops/compare/v0.8.0...v0.8.1)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **controller:** add error logging for Minio client health check
+
+
+
+* **api:** Support api tokens for servers as optional
+
+
+<a name="v0.8.0"></a>
+### [v0.8.0](https://github.com/odit-services/s3ops/compare/v0.7.1...v0.8.0)
+
+> 2025-08-15
+
+
+
+* **controller:** update user identifier condition for S3AdminClient type check
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **api:** add ProviderMeta field to S3UserStatus for provider-specific metadata
+* **client:** implement ListUsers method in IonosAdminClient for user retrieval
+* **mocks:** enhance user existence checks with logging and detailed error messages
+
+
+
+* Add seperate client identifier for wider access key creation support
+* **client:** simplify IsOnline method in IonosClient
+
+
+<a name="v0.7.1"></a>
+### [v0.7.1](https://github.com/odit-services/s3ops/compare/v0.7.0...v0.7.1)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **client:** streamline client initialization using GenerateIonosClient
+
+
+<a name="v0.7.0"></a>
+### [v0.7.0](https://github.com/odit-services/s3ops/compare/v0.6.0...v0.7.0)
+
+> 2025-08-15
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deps:** Added dependency
+
+
+
+* **api:** Added baseline support for ionos
+* **services:** Added usage of ionos s3 clients
+
+
+<a name="v0.6.0"></a>
+### [v0.6.0](https://github.com/odit-services/s3ops/compare/v0.5.1...v0.6.0)
+
+> 2024-10-24
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **api:** Add yaml to status
+* **api:** Added new Name field to s3policy
+* **s3policy_controller:** Implement policy name generation
+
+
+
+* **s3user_controller:** Switch to policy name generation
+
+
+
+* **s3policy_controller:** Updated tests to match new naming rules
+* **s3policy_controller:** Test for new policy status name field
+
+
+<a name="v0.5.1"></a>
+### [v0.5.1](https://github.com/odit-services/s3ops/compare/v0.5.0...v0.5.1)
+
+> 2024-09-10
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3bucket_controller:** Also create secret if it does not already exist
+
+
+<a name="v0.5.0"></a>
+### [v0.5.0](https://github.com/odit-services/s3ops/compare/v0.4.3...v0.5.0)
+
+> 2024-09-10
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3bucket_controller:** Implemented secret deletion
+* **s3bucket_controller:** Implement secret creation
+
+
+
+* **s3bucket_controller:** Test for correct type
+* **s3bucket_controller:** Test secret deletion
+* **s3bucket_controller:** Test for bucket connection details secret creation
+
+
+<a name="v0.4.3"></a>
+### [v0.4.3](https://github.com/odit-services/s3ops/compare/v0.4.2...v0.4.3)
+
+> 2024-08-17
+
+
+
+* **manager:** Increase memeory limit
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.4.2"></a>
+### [v0.4.2](https://github.com/odit-services/s3ops/compare/v0.4.1...v0.4.2)
+
+> 2024-08-17
+
+
+
+* **deployment:** Remove probles
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **controller:** Remove unused Condition return values
+* **controller:** Remove Condition return from helper functions
+* **s3client:** Removed condition from helper functions
+
+
+<a name="v0.4.1"></a>
+### [v0.4.1](https://github.com/odit-services/s3ops/compare/v0.4.0...v0.4.1)
+
+> 2024-08-17
+
+
+
+* **controller:** Typo in policy
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+<a name="v0.4.0"></a>
+### [v0.4.0](https://github.com/odit-services/s3ops/compare/v0.3.1...v0.4.0)
+
+> 2024-08-17
+
+
+
+* **api:** Allow empty as enum value
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **S3bucket_controller:** Implement user creation
+* **api:** Added createuserfromtemplate for automagic user+policy generation
+* **s3bucket_controller:** Added policy template for rw
+
+
+
+* **s3bucket_controller:** Test deletion of sample users
+* **s3bucket_controller:** Test for call of secondary functions on user create
+* **s3bucket_controller:** Test for correct policy
+* **s3bucket_controller:** Test for user+policy creation
+
+
+<a name="v0.3.1"></a>
+### [v0.3.1](https://github.com/odit-services/s3ops/compare/v0.3.0...v0.3.1)
+
+> 2024-08-17
+
+
+
+* **rbac:** RBAC permissions for secrets
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* Added some badges to the readme
+
+
+
+* **api:** Set printcolumns
+* **controller:** Update lastaction according to the current state
+
+
+<a name="v0.3.0"></a>
+### [v0.3.0](https://github.com/odit-services/s3ops/compare/v0.2.3...v0.3.0)
+
+> 2024-08-17
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+
+
+
+* **s3client:** Support external secrets for servers
+* **s3server_controller:** Support for existing secrets
+
+
+
+* **api:** Add existingSecret ref option to s3server
+
+
+
+* **s3bucket_controller:** Test for s3server with secretauth to handle s3client helper function test
+* **s3server_controller:** Added tests for servers with existing secrets
+
+
+<a name="v0.2.3"></a>
+### [v0.2.3](https://github.com/odit-services/s3ops/compare/v0.2.2...v0.2.3)
+
+> 2024-08-17
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+
+
+
+* **make:** Push for new releases
+
+
+<a name="v0.2.2"></a>
+### [v0.2.2](https://github.com/odit-services/s3ops/compare/v0.2.1...v0.2.2)
+
+> 2024-08-17
+
+
+
+* update changelog
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+
+
+
+* **make:** Patch version for yaml build
+
+
+<a name="v0.2.1"></a>
+### [v0.2.1](https://github.com/odit-services/s3ops/compare/v0.2.0...v0.2.1)
+
+> 2024-08-17
+
+
+
+* **changelog:** Fixed empty lines
+
+
+
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+
+
+
+* Added specific version deploy to readme
+* Added missing information to readme
+
+
+
+* **changelog:** Updated template to include version index
+* **deployment:** New build bundles
+* **deployment:** Added full deployment build
+* **make:** Added yaml bundle build target
+
+
+
+* **deploymeng:** Set default version and image
+
+
+<a name="v0.2.0"></a>
+### [v0.2.0](https://github.com/odit-services/s3ops/compare/v0.1.0...v0.2.0)
+
+> 2024-08-17
+
+
+
+* **api:** Make tls optional with default
+* **api:** Make region optional
+* **controller:** Don't reset retries
+* **controller:** Add Event filters
+* **s3bucket_controller:** Follow namingconventions
+* **s3bucket_controller:** Don't override specialized status fields
+* **s3bucket_controller:** Don't override default error
+* **s3bucket_controller:** Fix truncate logic
+* **s3bucket_controller:** Adjust nanoid alphabet to conform with minio standards
+* **s3bucket_controller:** Truncate based on available length
+* **s3user:** Cleanup secret at user deletion
+* **s3user_controller:** Decode data from secret
+* **samples:** Switch to default minio region
+* **samples:** Switch to 100% localhost
+
+
+
+* **api:** New autogenerated functions
+* **changelog:** Generated Changelog
+
+
+
+* **api:** Added CurrentRetries to CrStatus
+* **api:** Added action consts
+* **controller:** Added requeue on error
+* **docs:** Updated changelog template
+* **make:** Added release targtet
+* **make:** Added advanced changelog generation script
+* **s3bucket_controller:** Set new status fields
+* **s3bucket_controller:** Info log for reconcile
+* **samples:** Added user and policy samples
+* **samples:** Added s3buckedt sample
+
+
+
+* **api:** Remove conditions from s3bucket status
+* **api:** Switched from running to reconciling
+* **api:** Remove conditions from S3User Status
+* **api:** Add shared CrStatus
+* **api:** Remove conditions from s3policy status
+* **api:** Rename status.status to status.state
+* **api:** Removed conditions from s3server
+* **api:** Switched from Transition to Reconcile Time
+* **controller:** Move ServerRef to shared object
+* **s3bucket_controller:** Switch to the new state style ref #1
+* **s3bucket_controller:** Extract Status updates to HandleError function
+* **s3policy_controller:** Switch to the new CrStatus from just conditions
+* **s3server_controller:** Switch to CrStatus instead of conditions
+* **s3user_controller:** Switch to writing CrStatus instead of conditions
+* **s3user_controller:** Switch to nanoid user only
+
+
+
+* **s3bucket_controller:** Fix typo in then
+* **s3bucket_controller:** Test for the new CRStatus fields
+* **s3bucket_controller:** Switch from state to condition
+* **s3server_controller:** Test for CrStatus fields instead of condition magic
+* **s3user_controller:** Switch to crstatus
+* **s3user_controller:** Use correct secret data access syntax
+
+
+<a name="v0.1.0"></a>
+### v0.1.0
+
+> 2024-08-16
+
+
+
+* **api:** Moved object annotation
+* **docker:** Copy over services directory
+* **make:** Typo in multiarch target
+* **mocks:** pass on spy
+* **s3bucket_controller:** Always return errors if thrown
+* **s3policy_controller:** Typo
+* **s3server_controller:** Start healthcheck before cheking online status
+* **s3server_controller:** Added Reason and lastupdate to all status updates
+* **s3user_controller:** Confirm with naming standards
+* **s3user_controller:** Generate password with correct settings)
+
+
+
+* **api:** new manifests
+
+
+
+* **README:** Added description and other facts
+
+
+
+* **api:** Added bucket spec info needed for creation
+* **api:** New S3User Object
+* **api:** Add name generation to bucket CR
+* **api:** Added softdelete flag for s3bucket
+* **api:** Basic S3Server Type
+* **api:** Mark policy list as optional
+* **api:** Added new cr bucket
+* **api:** Added policy refs to user
+* **api:** Added basics for s3policy
+* **api:** Added s3bucket server reference
+* **api:** Update required references for s3user
+* **make:** Changelog generation
+* **make:** Added multiarch target
+* **s3bucket_controller:** Baseline setup
+* **s3bucket_controller:** Added basic controller for s3 buckets
+* **s3bucket_controller:** Implement bucket creation
+* **s3bucket_controller:** Set correct finalizer
+* **s3bucket_controller:** Implemented deletion
+* **s3bucket_controller:** Fill in created field of the status
+* **s3bucket_controller:** Implement name generation
+* **s3client:** Added needed functions to interface
+* **s3client:** Throw error when creating client from server config if server is offline
+* **s3client:** Implemented policy apply
+* **s3client:** Added minio implementation of s3client
+* **s3client:** Baseline implementation for admin client
+* **s3client:** Add interface functions for bucket operations
+* **s3client:** Add RemoveBucket to interface
+* **s3policy_controller:** Implemented policy deletion
+* **s3policy_controller:** Implement s3policy creation
+* **s3policy_controller:** Baseline Implementation
+* **s3policy_controller:** implement outside actions for policy reconcile
+* **s3server_controller:** Update online field
+* **s3server_controller:** Implement s3server status check on ressource creation
+* **s3server_controller:** Requeue
+* **s3user_controller:** Implemented secret generation
+* **s3user_controller:** Added additional logs/status conditions
+* **s3user_controller:** Basics of secret handling
+* **s3user_controller:** Base setup
+* **s3user_controller:** Implement user creation
+* **s3user_controller:** Implemented deletion
+* **s3user_controller:** Implement policy assign
+
+
+
+* **api:** Switch to disable flag instead of enable flag for s3bucket name generation
+
+
+
+* **api:** Switch to seperate status functions
+* **api:** Remove ability to provide s3user custom secret
+* **api:** Remove Port
+* **api:** Use sharted cr status instead of implementing status for all CRs
+* **controller:** Replace default minio client with mockable interface
+* **controller:** Extract s3client related stuff into it's own module
+* **controllers:** Extract s3 server get into shared function
+* **controllers:** Rename to reflect job instead of provider
+* **s3client:** Handle different client implementations
+* **s3client:** Move to services folder
+* **s3server_controller:** Extract minio client generation to shared function
+* **s3user_controller:** Removed logic related to user-provided secrets
+* **s3user_controller:** Migrate secret handling to helper functions
+* **tests:** Use mocked s3client instead of guesswork with play.min.io
+
+
+
+* **s3bucket_controller:** Removed unused comments
+* **s3server_controller:** Typo
+
+
+
+* **controllers:** Added spy to s3client mocks
+* **controllers:** Reconcile test server objects for non-server reconcilers
+* **controllers:** Fix a bunch of nill pointer exceptions
+* **mocks:** Mock S3Client
+* **s3bucket:** Test for finalizer being set
+* **s3bucket_controller:** Check name generation
+* **s3bucket_controller:** Added tests for happy path
+* **s3bucket_controller:** Added deletion tests
+* **s3bucket_controller:** reset spy and mark bucket as existing
+* **s3bucket_controller:** Typo in object ref
+* **s3bucket_controller:** Added tests for s3 server problems
+* **s3bucket_controller:** Envoke deletion for delete tests
+* **s3bucket_controller:** Check new created status field
+* **s3client:** Implemente empty mock bodies
+* **s3client:** Added admin mocks
+* **s3client:** Implement mocks
+* **s3policy_controller:** Test policy deletion
+* **s3policy_controller:** Basic test setup
+* **s3policy_controller:** Test policy updates
+* **s3server_controller:** Implemented basic tests
+* **s3server_controller:** Check condition for all tests
+* **s3server_controller:** Test updates
+* **s3server_controller:** Test deletion
+* **s3server_controller:** Test for new online status
+* **s3user_controller:** Added deletion happy path test
+* **s3user_controller:** Create test policy for user
+* **s3user_controller:** Test for policy apply
+* **s3user_controller:** Also enforce checkpolicy
+* **s3user_controller:** Switch to loading policy name from env
+* **s3user_controller:** Fix in bracket order
+* **s3user_controller:** Added tests for invalid servers
+* **s3user_controller:** Test basic controller functions
+* **s3user_controller:** Test happy path for create and update
+
+
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+Versions are based on [Semantic Versioning](http://semver.org/), and the changelog is generated with [Chglog](https://github.com/git-chglog/git-chglog).
+
+## Version History
+
 * [v0.12.4](#v0.12.4)
 * [v0.12.3](#v0.12.3)
 * [v0.12.2](#v0.12.2)
