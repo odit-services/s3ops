@@ -244,6 +244,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 					Expect(string(secret.Data["endpoint"])).To(Equal(s3Server.Spec.Endpoint))
 					Expect(string(secret.Data["region"])).To(Equal(s3Bucket.Spec.Region))
 					Expect(string(secret.Data["tls"])).To(Equal(strconv.FormatBool(s3Server.Spec.TLS)))
+					Expect(string(secret.Data["endpoint_url"])).To(Equal("https://" + s3Server.Spec.Endpoint))
 
 				})
 			})
