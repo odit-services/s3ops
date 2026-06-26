@@ -241,16 +241,21 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		s3Bucket.Status.Created = true
 
+		endpointScheme := "http://"
+		if s3Server.Spec.TLS {
+			endpointScheme = "https://"
+		}
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
 				Namespace: req.Namespace,
 			},
 			StringData: map[string]string{
-				"bucketname": bucketName,
-				"endpoint":   s3Server.Spec.Endpoint,
-				"region":     s3Bucket.Spec.Region,
-				"tls":        strconv.FormatBool(s3Server.Spec.TLS),
+				"bucketname":   bucketName,
+				"endpoint":     s3Server.Spec.Endpoint,
+				"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
+				"region":       s3Bucket.Spec.Region,
+				"tls":          strconv.FormatBool(s3Server.Spec.TLS),
 			},
 		}
 		err = r.Create(ctx, secret)
@@ -262,7 +267,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		s3Bucket.Status.LastAction = s3oditservicesv1alpha1.ActionUpdate
 
 		var secret *corev1.Secret
-		_, err = getSecret(ctx, r.Client, req.Namespace, fmt.Sprintf("%s-bkt", s3Bucket.Name))
+		endpointScheme := "http://"
+		if s3Server.Spec.TLS {
+			endpointScheme = "https://"
+		}
+		secret, err = getSecret(ctx, r.Client, req.Namespace, fmt.Sprintf("%s-bkt", s3Bucket.Name))
 		if err != nil {
 			r.logger.Warnw("Failed to get secret - create", "name", req.Name, "namespace", req.Namespace, "error", err)
 			secret = &corev1.Secret{
@@ -271,10 +280,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Namespace: req.Namespace,
 				},
 				StringData: map[string]string{
-					"bucketname": bucketName,
-					"endpoint":   s3Server.Spec.Endpoint,
-					"region":     s3Bucket.Spec.Region,
-					"tls":        strconv.FormatBool(s3Server.Spec.TLS),
+					"bucketname":   bucketName,
+					"endpoint":     s3Server.Spec.Endpoint,
+					"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
+					"region":       s3Bucket.Spec.Region,
+					"tls":          strconv.FormatBool(s3Server.Spec.TLS),
 				},
 			}
 			err = r.Create(ctx, secret)
@@ -283,6 +293,20 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return r.HandleError(s3Bucket, err)
 			}
 			r.logger.Infow("Created secret for bucket", "name", req.Name, "namespace", req.Namespace)
+		} else {
+			secret.StringData = map[string]string{
+				"bucketname":   bucketName,
+				"endpoint":     s3Server.Spec.Endpoint,
+				"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
+				"region":       s3Bucket.Spec.Region,
+				"tls":          strconv.FormatBool(s3Server.Spec.TLS),
+			}
+			err = r.Update(ctx, secret)
+			if err != nil {
+				r.logger.Errorw("Failed to update secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Updated secret for bucket", "name", req.Name, "namespace", req.Namespace)
 		}
 
 		err = r.Status().Update(ctx, s3Bucket)
