@@ -124,10 +124,14 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	minioOnline := false
-	if s3Server.Spec.Type == s3client.ServerTypeRustfs {
+	switch s3Server.Spec.Type {
+	case s3client.ServerTypeRustfs:
 		err = s3client.CheckRustfsHealth(ctx, s3Server.Spec.Endpoint, s3Server.Spec.TLS)
 		minioOnline = err == nil
-	} else {
+	case s3client.ServerTypeIonos:
+		_, err = minioClient.HealthCheck(10 * time.Second)
+		minioOnline = err == nil
+	default:
 		_, _ = minioClient.HealthCheck(1 * time.Second)
 		time.Sleep(1 * time.Second)
 		minioOnline = minioClient.IsOnline()
@@ -135,7 +139,7 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if !minioOnline {
 		r.logger.Errorw("S3 server is offline for S3Server", "name", req.Name, "namespace", req.Namespace, "error", err)
 		s3Server.Status.Online = false
-		return r.HandleError(s3Server, fmt.Errorf("minio server is offline"))
+		return r.HandleError(s3Server, fmt.Errorf("s3 server is offline"))
 	}
 
 	r.logger.Infow("Finished reconciling S3Server", "name", req.Name, "namespace", req.Namespace)

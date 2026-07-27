@@ -27,8 +27,9 @@ func NewIonosClient(endpoint string, accessKey string, secretKey string, tls boo
 }
 
 func (c *IonosClient) HealthCheck(timeout time.Duration) (context.CancelFunc, error) {
-	_, _, err := c.Client.BucketsApi.ListBuckets(context.Background()).Execute()
-	return func() {}, err
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	_, _, err := c.Client.BucketsApi.ListBuckets(ctx).Execute()
+	return cancel, err
 }
 
 func (c *IonosClient) IsOnline() bool {
