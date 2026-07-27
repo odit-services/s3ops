@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -126,6 +127,39 @@ func NewRustfsAdminClient(s3Endpoint string, accessKey string, secretKey string,
 
 func (c *RustfsAdminClient) GetType() string {
 	return "rustfs"
+}
+
+// CheckRustfsHealth verifies RustFS's native health endpoint without invoking
+// S3 operations that can block on distributed metadata locks.
+func CheckRustfsHealth(ctx context.Context, endpoint string, tls bool) error {
+	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		scheme := "http"
+		if tls {
+			scheme = "https"
+		}
+		endpoint = scheme + "://" + endpoint
+	}
+
+	healthURL, err := url.Parse(endpoint)
+	if err != nil {
+		return fmt.Errorf("rustfs: invalid endpoint: %w", err)
+	}
+	healthURL.Path = strings.TrimSuffix(healthURL.Path, "/") + "/health"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL.String(), nil)
+	if err != nil {
+		return fmt.Errorf("rustfs: failed to create health request: %w", err)
+	}
+
+	resp, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
+	if err != nil {
+		return fmt.Errorf("rustfs: health request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("rustfs: health endpoint returned HTTP %d", resp.StatusCode)
+	}
+	return nil
 }
 
 // doRequest signs and executes an admin API request.

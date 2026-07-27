@@ -65,3 +65,28 @@ func TestMakeUserWithCredentialsUsesSuppliedCredentials(t *testing.T) {
 		t.Fatalf("unexpected credentials: identifier=%q accessKey=%q secretKey=%q", identifier, gotAccessKey, gotSecretKey)
 	}
 }
+
+func TestCheckRustfsHealth(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/health" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	if err := CheckRustfsHealth(t.Context(), server.URL, false); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCheckRustfsHealthRejectsNonSuccessStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	if err := CheckRustfsHealth(t.Context(), server.URL, false); err == nil {
+		t.Fatal("expected health check to fail")
+	}
+}
