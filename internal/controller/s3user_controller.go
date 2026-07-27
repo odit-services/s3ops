@@ -149,6 +149,43 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
+	// RustFS service-account creation is not idempotent when the caller loses
+	// the generated access key. Persist it before the external API call so a
+	// restarted reconcile checks and completes the same account.
+	if _, ok := s3AdminClient.(*s3client.RustfsAdminClient); ok && secret == nil {
+		accessKey, secretKey, credentialErr := s3client.GenerateRustfsServiceAccountCredentials()
+		if credentialErr != nil {
+			return r.HandleError(s3User, credentialErr)
+		}
+
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-s3creds", s3User.Name),
+				Namespace: s3User.Namespace,
+			},
+			StringData: map[string]string{
+				"accessKey":  accessKey,
+				"secretKey":  secretKey,
+				"identifier": accessKey,
+			},
+		}
+		if err = upsertSecret(ctx, r.Client, secret); err != nil {
+			r.logger.Errorw("Failed to persist pending RustFS user credentials", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+
+		s3User.Status.SecretRef = secret.Name
+		s3User.Status.UserIdentifier = accessKey
+		s3User.Status.ProviderMeta = accessKey
+		if err = r.Status().Update(ctx, s3User); err != nil {
+			r.logger.Errorw("Failed to persist pending RustFS user identifier", "name", req.Name, "namespace", req.Namespace, "error", err)
+			return r.HandleError(s3User, err)
+		}
+		userCreds.AccessKey = accessKey
+		userCreds.SecretKey = secretKey
+		userCreds.Identifier = accessKey
+	}
+
 	userExists, err := s3AdminClient.UserExists(ctx, userCreds.Identifier)
 	if err != nil {
 		r.logger.Errorw("Failed to check if user exists", "name", req.Name, "namespace", req.Namespace, "error", err)
@@ -274,6 +311,17 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			s3User.Status.UserIdentifier = pendingUserId
 			s3User.Status.Created = true
 			_ = r.Status().Update(ctx, s3User)
+		} else if rustfsClient, ok := s3AdminClient.(*s3client.RustfsAdminClient); ok {
+			identifier, accessKey, secretKey, err := rustfsClient.MakeUserWithCredentials(ctx, s3User.Name, userCreds.AccessKey, userCreds.SecretKey)
+			if err != nil {
+				r.logger.Errorw("Failed to create RustFS user", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3User, err)
+			}
+			r.logger.Infow("RustFS user created", "name", req.Name, "namespace", req.Namespace, "identifier", identifier, "accessKey", accessKey)
+			userCreds.AccessKey = accessKey
+			userCreds.SecretKey = secretKey
+			userCreds.Identifier = identifier
+			s3User.Status.Created = true
 		} else {
 			identifier, accessKey, secretKey, err := s3AdminClient.MakeUser(ctx, s3User.Name)
 			if err != nil {

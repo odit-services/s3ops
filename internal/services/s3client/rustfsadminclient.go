@@ -194,17 +194,32 @@ func (c *RustfsAdminClient) UserExists(ctx context.Context, accessKey string) (b
 // (providerID, accessKey, secretKey, error).
 // providerID == accessKey for RustFS (there is no separate internal ID).
 func (c *RustfsAdminClient) MakeUser(ctx context.Context, name string) (string, string, string, error) {
-	nanoid, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 20)
+	accessKey, secretKey, err := GenerateRustfsServiceAccountCredentials()
 	if err != nil {
 		return "", "", "", err
 	}
-	accessKey := nanoid
+
+	return c.MakeUserWithCredentials(ctx, name, accessKey, secretKey)
+}
+
+// GenerateRustfsServiceAccountCredentials returns credentials that can be
+// persisted before the service account is created, making retries idempotent.
+func GenerateRustfsServiceAccountCredentials() (string, string, error) {
+	accessKey, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 20)
+	if err != nil {
+		return "", "", err
+	}
 
 	secretKey, err := gopassword.Generate(40, 10, 0, false, true)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
+	return accessKey, secretKey, nil
+}
 
+// MakeUserWithCredentials creates a RustFS service account using credentials
+// supplied by the caller. The caller must persist them before this call.
+func (c *RustfsAdminClient) MakeUserWithCredentials(ctx context.Context, name, accessKey, secretKey string) (string, string, string, error) {
 	reqBody := rustfsAddServiceAccountReq{
 		AccessKey:   accessKey,
 		SecretKey:   secretKey,
