@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-and-push:
-    runs-on: actions-runner-kube-niggl
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
