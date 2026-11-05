@@ -58,6 +58,10 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '1'
+          # Skip actions/cache (GHA cache hangs on self-hosted runners).
+          # DB persists on runner disk via cache-dir instead.
+          cache: 'false'
+          cache-dir: /var/tmp/trivy-cache
 
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v7
