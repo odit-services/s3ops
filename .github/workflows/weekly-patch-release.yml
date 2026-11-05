@@ -1,0 +1,66 @@
+name: Weekly Patch Release
+
+on:
+  schedule:
+    # Mondays 07:00 UTC (08:00 Europe/Berlin in winter)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-patch-release
+  cancel-in-progress: false
+
+jobs:
+  patch-release:
+    runs-on: self-hosted
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Create patch release if dependencies changed
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          LAST_TAG=$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
+          if [ -z "$LAST_TAG" ]; then
+            echo "No release tag found, skipping."
+            exit 0
+          fi
+          echo "Last release tag: $LAST_TAG"
+          if [ -z "$(git diff --name-only "$LAST_TAG"..HEAD -- go.mod go.sum Dockerfile)" ]; then
+            echo "No dependency updates since $LAST_TAG, skipping."
+            exit 0
+          fi
+          VERSION=${LAST_TAG#v}
+          NEXT="v$(echo "$VERSION" | awk -F. '{printf "%d.%d.%d", $1, $2, $3+1}')"
+          echo "Creating patch release $NEXT"
+          IMAGE="ghcr.io/odit-services/s3ops"
+          sed -i "s|image: ${IMAGE}:v.*|image: ${IMAGE}:${NEXT}|" config/deployment/full.yaml
+          if [ "$(grep -c "image: ${IMAGE}:${NEXT}" config/deployment/full.yaml)" -ne 1 ]; then
+            echo "Expected exactly one image reference to update, aborting."
+            exit 1
+          fi
+          USER_ID=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git add config/deployment/full.yaml
+          git commit -m "chore(release): prepare ${NEXT}"
+          git push origin HEAD:main
+          git tag -a "$NEXT" -m "$NEXT"
+          git push origin "$NEXT"
