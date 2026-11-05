@@ -40,6 +40,12 @@ jobs:
         run: |
           VERSION="${{ inputs.tag || github.ref_name }}"
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          # Docker tags without v prefix: full, major.minor, major, latest
+          VER="${VERSION#v}"
+          MAJOR="${VER%%.*}"
+          MINOR="$(echo "$VER" | cut -d. -f1,2)"
+          REPO="ghcr.io/odit-services/s3ops"
+          echo "TAGS=${REPO}:${VER},${REPO}:${MINOR},${REPO}:${MAJOR},${REPO}:latest" >> $GITHUB_OUTPUT
 
       - name: Build image for scan
         uses: docker/build-push-action@v7
@@ -48,12 +54,13 @@ jobs:
           platforms: linux/amd64
           load: true
           push: false
-          tags: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          pull: true
+          tags: ${{ steps.version.outputs.TAGS }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          image-ref: ghcr.io/odit-services/s3ops:latest
           format: table
           severity: CRITICAL,HIGH
           ignore-unfixed: true
@@ -69,12 +76,13 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          pull: true
+          tags: ${{ steps.version.outputs.TAGS }}
 
       - name: Generate Trivy vulnerability report
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          image-ref: ghcr.io/odit-services/s3ops:latest
           format: json
           output: trivy-report.json
           exit-code: '0'
@@ -85,7 +93,7 @@ jobs:
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          image-ref: ghcr.io/odit-services/s3ops:latest
           format: cyclonedx
           output: sbom.cyclonedx.json
           exit-code: '0'
