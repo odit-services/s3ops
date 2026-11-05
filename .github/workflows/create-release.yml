@@ -37,7 +37,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_body.md
-          draft: false
+          draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             config/deployment/full.yaml
