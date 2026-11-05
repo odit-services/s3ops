@@ -35,6 +35,26 @@ jobs:
           VERSION="${GITHUB_REF#refs/tags/}"
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Build image for scan
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ghcr.io/odit-services/s3ops:${{ steps.version.outputs.VERSION }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v7
         with:
