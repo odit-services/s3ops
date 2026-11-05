@@ -3,7 +3,14 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
+  # Manual backfill for releases whose image was never built
+  # (e.g. created while the workflow still triggered on the release event).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.5.1)'
+        required: true
 
 permissions:
   contents: read
@@ -15,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -32,7 +41,7 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ inputs.tag || github.ref_name }}"
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build image for scan

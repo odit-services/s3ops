@@ -1,45 +1,51 @@
-name: Create Release
+name: Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
   contents: write
 
 jobs:
   release:
+    name: Create GitHub Release
     runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      #   with:
-      #     fetch-depth: 0
+        with:
+          fetch-depth: 0
 
-      # - name: Set up Go
-      #   uses: actions/setup-go@v5
-      #   with:
-      #     go-version-file: go.mod
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-      # - name: Install git-chglog
-      #   run: go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.4
+      - name: Install git-chglog
+        run: go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
 
-      # - name: Generate changelog for tag
-      #   id: changelog
-      #   run: |
-      #     VERSION="${GITHUB_REF#refs/tags/}"
-      #     CHANGELOG=$(git-chglog --no-color -o /dev/null --next-tag "$VERSION" "$VERSION")
-      #     CHANGELOG="${CHANGELOG//'%'/'%25'}"
-      #     CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-      #     CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-      #     echo "BODY=${CHANGELOG}" >> $GITHUB_OUTPUT
+      - name: Generate release body
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git-chglog -t .chglog/RELEASE.tpl.md -o release_body.md $TAG
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          body: Release for tag ${{ github.ref_name }}
+          body_path: release_body.md
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            config/deployment/full.yaml
+            config/deployment/crds.yaml
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            config/deployment/full.yaml
+            config/deployment/crds.yaml
