@@ -42,7 +42,7 @@ type S3UserStatus struct {
 	Created        bool   `json:"created,omitempty"`
 	SecretRef      string `json:"secretRef,omitempty"`
 	ProviderMeta   string `json:"providerMeta,omitempty" yaml:"providerMeta,omitempty"` // This can be used to store provider-specific metadata, like user ID or ARN
-	UserIdentifier string `json:"userIdentifier,omitempty"` // This can be used to store a unique identifier for the user, like an email or username
+	UserIdentifier string `json:"userIdentifier,omitempty"`                             // This can be used to store a unique identifier for the user, like an email or username
 }
 
 // +kubebuilder:webhook:path=/validate-s3-odit-services-v1alpha1-s3user,mutating=false,failurePolicy=fail,sideEffects=None,groups=s3.odit.services,resources=s3users,verbs=create;update,versions=v1alpha1,name=vs3user.s3.odit.services,admissionReviewVersions=v1
