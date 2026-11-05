@@ -200,7 +200,7 @@ func (c *IonosAdminClient) FinalizeIonosUser(ctx context.Context, userId string)
 		return "", "", err
 	}
 
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	// 422 means the user is already in the group – treat as success.
 	if resp.StatusCode < 200 || (resp.StatusCode >= 300 && resp.StatusCode != 422) {
 		return "", "", errors.New("failed to add user to group: " + resp.Status + userId + " for group " + c.S3GroupId)
@@ -218,7 +218,7 @@ func (c *IonosAdminClient) FinalizeIonosUser(ctx context.Context, userId string)
 		return "", "", err
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", errors.New("failed to create s3key: " + resp.Status + " for user " + userId)
 	}

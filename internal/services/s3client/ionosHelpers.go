@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	awsv4 "github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/aws/aws-sdk-go/aws/credentials"     //nolint:staticcheck // aws-sdk-go v1 is EOL, migration to v2 is tracked separately
+	awsv4 "github.com/aws/aws-sdk-go/aws/signer/v4" //nolint:staticcheck // aws-sdk-go v1 is EOL, migration to v2 is tracked separately
 	ionoscloud "github.com/ionos-cloud/sdk-go-object-storage"
 )
 

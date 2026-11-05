@@ -144,8 +144,14 @@ func main() {
 	}
 
 	// Set ENABLE_CROSS_NAMESPACE_VALIDATION env var based on flag for webhook access
-	os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", strconv.FormatBool(enableCrossNamespaceValidation))
-	os.Setenv("ENABLE_WEBHOOKS", strconv.FormatBool(enableWebhooks))
+	if err := os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", strconv.FormatBool(enableCrossNamespaceValidation)); err != nil {
+		setupLog.Error(err, "unable to set ENABLE_CROSS_NAMESPACE_VALIDATION")
+		os.Exit(1)
+	}
+	if err := os.Setenv("ENABLE_WEBHOOKS", strconv.FormatBool(enableWebhooks)); err != nil {
+		setupLog.Error(err, "unable to set ENABLE_WEBHOOKS")
+		os.Exit(1)
+	}
 
 	if err = (&controller.S3ServerReconciler{
 		Client: mgr.GetClient(),

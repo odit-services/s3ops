@@ -1,25 +1,9 @@
-version: 2
+version: "2"
 run:
   timeout: 5m
   allow-parallel-runners: true
-
-issues:
-  # don't skip warning about doc comments
-  # don't exclude the default set of lint
-  exclude-use-default: false
-  # restore some of the defaults
-  # (fill in the rest as needed)
-  exclude-rules:
-    - path: "api/*"
-      linters:
-        - misspell
-    - path: "internal/*"
-      linters:
-        - dupl
-        - misspell
 linters:
-  default-mode: standard
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - govet
@@ -35,7 +19,20 @@ linters:
     - misspell
     - nakedret
     - prealloc
+  exclusions:
+    generated: lax
+    rules:
+      - path: internal/
+        linters:
+          - dupl
+          - misspell
+      - path: api/
+        linters:
+          - misspell
+      - path: _test\.go
+        linters:
+          - dupl
+          - goconst
 formatters:
   enable:
     - gofmt
-    - goimports

@@ -668,7 +668,7 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
 
-				policyReconciler.Reconcile(ctx, ctrl.Request{
+				_, _ = policyReconciler.Reconcile(ctx, ctrl.Request{
 					NamespacedName: nameSpacedName,
 				})
 				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Policy)).To(Succeed())

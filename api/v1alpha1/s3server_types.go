@@ -111,7 +111,3 @@ type S3ServerList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []S3Server `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&S3Server{}, &S3ServerList{})
-}

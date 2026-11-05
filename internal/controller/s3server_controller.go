@@ -108,10 +108,10 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 
 		if s3Server.Spec.Auth.AccessKeySecretKey == "" {
-			s3Server.Spec.Auth.AccessKeySecretKey = "accessKey"
+			s3Server.Spec.Auth.AccessKeySecretKey = secretDataKeyAccessKey
 		}
 		if s3Server.Spec.Auth.SecretKeySecretKey == "" {
-			s3Server.Spec.Auth.SecretKeySecretKey = "secretKey"
+			s3Server.Spec.Auth.SecretKeySecretKey = secretDataKeySecretKey
 		}
 		s3Server.Spec.Auth.AccessKey = string(secret.Data[s3Server.Spec.Auth.AccessKeySecretKey])
 		s3Server.Spec.Auth.SecretKey = string(secret.Data[s3Server.Spec.Auth.SecretKeySecretKey])

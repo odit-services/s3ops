@@ -70,7 +70,3 @@ type S3UserList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []S3User `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&S3User{}, &S3UserList{})
-}

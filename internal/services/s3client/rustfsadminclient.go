@@ -16,8 +16,8 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	gopassword "github.com/sethvargo/go-password/password"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/aws/aws-sdk-go/aws/credentials"  //nolint:staticcheck // aws-sdk-go v1 is EOL, migration to v2 is tracked separately
+	v4 "github.com/aws/aws-sdk-go/aws/signer/v4" //nolint:staticcheck // aws-sdk-go v1 is EOL, migration to v2 is tracked separately
 )
 
 const (
@@ -155,7 +155,7 @@ func CheckRustfsHealth(ctx context.Context, endpoint string, tls bool) error {
 	if err != nil {
 		return fmt.Errorf("rustfs: health request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		return fmt.Errorf("rustfs: health endpoint returned HTTP %d", resp.StatusCode)
 	}
@@ -220,7 +220,7 @@ func (c *RustfsAdminClient) UserExists(ctx context.Context, accessKey string) (b
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return resp.StatusCode == http.StatusOK, nil
 }
 
@@ -270,7 +270,7 @@ func (c *RustfsAdminClient) MakeUserWithCredentials(ctx context.Context, name, a
 	if err != nil {
 		return "", "", "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if err := checkStatus(resp, "add-service-accounts"); err != nil {
 		return "", "", "", fmt.Errorf("%w (name=%q expiration=%q accessKeyLength=%d)", err, name, reqBody.Expiration, len(accessKey))
 	}
@@ -289,7 +289,7 @@ func (c *RustfsAdminClient) RemoveUser(ctx context.Context, accessKey string) er
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return checkStatus(resp, "delete-service-accounts")
 }
 
@@ -299,7 +299,7 @@ func (c *RustfsAdminClient) PolicyExists(ctx context.Context, policyName string)
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if err := checkStatus(resp, "list-canned-policies"); err != nil {
 		return false, err
 	}
@@ -318,7 +318,7 @@ func (c *RustfsAdminClient) MakePolicy(ctx context.Context, policyName string, p
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return checkStatus(resp, "add-canned-policy")
 }
 
@@ -333,7 +333,7 @@ func (c *RustfsAdminClient) RemovePolicy(ctx context.Context, policyName string)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return checkStatus(resp, "remove-canned-policy")
 }
 
@@ -347,7 +347,7 @@ func (c *RustfsAdminClient) ApplyPolicyToUser(ctx context.Context, policyName st
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if err := checkStatus(resp, "list-canned-policies"); err != nil {
 		return err
 	}

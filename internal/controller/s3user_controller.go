@@ -73,6 +73,7 @@ func (r *S3UserReconciler) HandleError(s3User *s3oditservicesv1alpha1.S3User, er
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3users/finalizers,verbs=update
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
+//nolint:gocyclo // Sequential reconcile steps with per-step error handling; splitting would obscure the reconcile flow.
 func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	r.logger.Infow("Reconciling S3User", "name", req.Name, "namespace", req.Namespace)
@@ -134,9 +135,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			SecretKey  string
 			Identifier string
 		}{
-			AccessKey:  string(secret.Data["accessKey"]),
-			SecretKey:  string(secret.Data["secretKey"]),
-			Identifier: string(secret.Data["identifier"]),
+			AccessKey:  string(secret.Data[secretDataKeyAccessKey]),
+			SecretKey:  string(secret.Data[secretDataKeySecretKey]),
+			Identifier: string(secret.Data[secretDataKeyIdentifier]),
 		}
 
 		if s3AdminClient.GetType() != s3client.ServerTypeIonos && s3User.Status.UserIdentifier == "" {
@@ -164,9 +165,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				Namespace: s3User.Namespace,
 			},
 			StringData: map[string]string{
-				"accessKey":  accessKey,
-				"secretKey":  secretKey,
-				"identifier": accessKey,
+				secretDataKeyAccessKey:  accessKey,
+				secretDataKeySecretKey:  secretKey,
+				secretDataKeyIdentifier: accessKey,
 			},
 		}
 		if err = upsertSecret(ctx, r.Client, secret); err != nil {
@@ -297,9 +298,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					Namespace: s3User.Namespace,
 				},
 				StringData: map[string]string{
-					"accessKey":  accessKey,
-					"secretKey":  secretKey,
-					"identifier": pendingUserId,
+					secretDataKeyAccessKey:  accessKey,
+					secretDataKeySecretKey:  secretKey,
+					secretDataKeyIdentifier: pendingUserId,
 				},
 			}
 			err = upsertSecret(ctx, r.Client, secret)
@@ -335,9 +336,9 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					Namespace: s3User.Namespace,
 				},
 				StringData: map[string]string{
-					"accessKey":  accessKey,
-					"secretKey":  secretKey,
-					"identifier": identifier,
+					secretDataKeyAccessKey:  accessKey,
+					secretDataKeySecretKey:  secretKey,
+					secretDataKeyIdentifier: identifier,
 				},
 			}
 			err = upsertSecret(ctx, r.Client, secret)
@@ -438,7 +439,7 @@ func (r *S3UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
 	zapLogger, _ := zapConfig.Build()
-	defer zapLogger.Sync()
+	defer func() { _ = zapLogger.Sync() }()
 	r.logger = zapLogger.Sugar()
 
 	r.S3ClientFactory = &s3client.S3ClientFactoryDefault{}

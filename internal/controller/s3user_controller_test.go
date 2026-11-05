@@ -89,7 +89,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3Server)).To(Succeed())
-		serverReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = serverReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3Server.Name,
 				Namespace: s3Server.Namespace,
@@ -113,7 +113,7 @@ var _ = Describe("S3User Controller", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, s3ServerBroken)).To(Succeed())
-		serverReconciler.Reconcile(ctx, ctrl.Request{
+		_, _ = serverReconciler.Reconcile(ctx, ctrl.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      s3ServerBroken.Name,
 				Namespace: s3ServerBroken.Namespace,

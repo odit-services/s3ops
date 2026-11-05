@@ -40,6 +40,18 @@ import (
 	s3client "github.com/odit-services/s3ops/internal/services/s3client"
 )
 
+// Keys used in the connection secrets managed by the controllers.
+const (
+	secretDataKeyBucketName  = "bucketname"
+	secretDataKeyEndpoint    = "endpoint"
+	secretDataKeyEndpointURL = "endpoint_url"
+	secretDataKeyRegion      = "region"
+	secretDataKeyTLS         = "tls"
+	secretDataKeyAccessKey   = "accessKey"
+	secretDataKeySecretKey   = "secretKey"
+	secretDataKeyIdentifier  = "identifier"
+)
+
 // S3BucketReconciler reconciles a S3Bucket object
 type S3BucketReconciler struct {
 	client.Client
@@ -75,6 +87,7 @@ func (r *S3BucketReconciler) HandleError(s3Bucket *s3oditservicesv1alpha1.S3Buck
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=s3.odit.services,resources=s3buckets/finalizers,verbs=update
 
+//nolint:gocyclo // Sequential reconcile steps with per-step error handling; splitting would obscure the reconcile flow.
 func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	r.logger.Infow("Reconciling S3Bucket", "name", req.Name, "namespace", req.Namespace)
@@ -186,7 +199,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		if secret != nil {
 			r.logger.Debugw("Removing secret", "name", req.Name, "namespace", req.Namespace)
-			err = r.Client.Delete(ctx, secret)
+			err = r.Delete(ctx, secret)
 			if err != nil {
 				r.logger.Errorw("Failed to remove secret", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3Bucket, err)
@@ -195,7 +208,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		if s3Bucket.Spec.CreateUserFromTemplate != "" {
 			r.logger.Debugw("Removing policy", "name", req.Name, "namespace", req.Namespace)
-			err := r.Client.Delete(ctx, &s3oditservicesv1alpha1.S3Policy{
+			err := r.Delete(ctx, &s3oditservicesv1alpha1.S3Policy{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      s3Bucket.Name,
 					Namespace: req.Namespace,
@@ -207,7 +220,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 
 			r.logger.Debugw("Removing user", "name", req.Name, "namespace", req.Namespace)
-			err = r.Client.Delete(ctx, &s3oditservicesv1alpha1.S3User{
+			err = r.Delete(ctx, &s3oditservicesv1alpha1.S3User{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      s3Bucket.Name,
 					Namespace: req.Namespace,
@@ -251,11 +264,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Namespace: req.Namespace,
 			},
 			StringData: map[string]string{
-				"bucketname":   bucketName,
-				"endpoint":     s3Server.Spec.Endpoint,
-				"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
-				"region":       s3Bucket.Spec.Region,
-				"tls":          strconv.FormatBool(s3Server.Spec.TLS),
+				secretDataKeyBucketName:  bucketName,
+				secretDataKeyEndpoint:    s3Server.Spec.Endpoint,
+				secretDataKeyEndpointURL: endpointScheme + s3Server.Spec.Endpoint,
+				secretDataKeyRegion:      s3Bucket.Spec.Region,
+				secretDataKeyTLS:         strconv.FormatBool(s3Server.Spec.TLS),
 			},
 		}
 		err = r.Create(ctx, secret)
@@ -280,11 +293,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Namespace: req.Namespace,
 				},
 				StringData: map[string]string{
-					"bucketname":   bucketName,
-					"endpoint":     s3Server.Spec.Endpoint,
-					"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
-					"region":       s3Bucket.Spec.Region,
-					"tls":          strconv.FormatBool(s3Server.Spec.TLS),
+					secretDataKeyBucketName:  bucketName,
+					secretDataKeyEndpoint:    s3Server.Spec.Endpoint,
+					secretDataKeyEndpointURL: endpointScheme + s3Server.Spec.Endpoint,
+					secretDataKeyRegion:      s3Bucket.Spec.Region,
+					secretDataKeyTLS:         strconv.FormatBool(s3Server.Spec.TLS),
 				},
 			}
 			err = r.Create(ctx, secret)
@@ -295,11 +308,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.logger.Infow("Created secret for bucket", "name", req.Name, "namespace", req.Namespace)
 		} else {
 			secret.StringData = map[string]string{
-				"bucketname":   bucketName,
-				"endpoint":     s3Server.Spec.Endpoint,
-				"endpoint_url": endpointScheme + s3Server.Spec.Endpoint,
-				"region":       s3Bucket.Spec.Region,
-				"tls":          strconv.FormatBool(s3Server.Spec.TLS),
+				secretDataKeyBucketName:  bucketName,
+				secretDataKeyEndpoint:    s3Server.Spec.Endpoint,
+				secretDataKeyEndpointURL: endpointScheme + s3Server.Spec.Endpoint,
+				secretDataKeyRegion:      s3Bucket.Spec.Region,
+				secretDataKeyTLS:         strconv.FormatBool(s3Server.Spec.TLS),
 			}
 			err = r.Update(ctx, secret)
 			if err != nil {
@@ -330,7 +343,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if s3Server.Spec.Type != "ionos" {
 			policyExists := false
 			policy := &s3oditservicesv1alpha1.S3Policy{}
-			err = r.Client.Get(ctx, client.ObjectKey{
+			err = r.Get(ctx, client.ObjectKey{
 				Namespace: req.Namespace,
 				Name:      s3Bucket.Name,
 			}, policy)
@@ -343,7 +356,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 
 			if !policyExists {
-				err := r.Client.Create(ctx, &s3oditservicesv1alpha1.S3Policy{
+				err := r.Create(ctx, &s3oditservicesv1alpha1.S3Policy{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      s3Bucket.Name,
 						Namespace: req.Namespace,
@@ -365,7 +378,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				r.logger.Infow("Finished creating policy", "name", req.Name, "namespace", req.Namespace)
 			} else {
 				policy.Spec.PolicyContent = policyContent
-				err := r.Client.Update(ctx, policy)
+				err := r.Update(ctx, policy)
 				if err != nil {
 					r.logger.Errorw("Failed to update policy", "name", req.Name, "namespace", req.Namespace, "error", err)
 					return r.HandleError(s3Bucket, err)
@@ -376,7 +389,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		userExists := false
 		user := &s3oditservicesv1alpha1.S3User{}
-		err = r.Client.Get(ctx, client.ObjectKey{
+		err = r.Get(ctx, client.ObjectKey{
 			Namespace: req.Namespace,
 			Name:      s3Bucket.Name,
 		}, user)
@@ -390,7 +403,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		if !userExists {
 			r.logger.Infow("Create user for bucket", "name", req.Name, "namespace", req.Namespace, "template", s3Bucket.Spec.CreateUserFromTemplate)
-			err = r.Client.Create(ctx, &s3oditservicesv1alpha1.S3User{
+			err = r.Create(ctx, &s3oditservicesv1alpha1.S3User{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      s3Bucket.Name,
 					Namespace: req.Namespace,
@@ -425,7 +438,7 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return r.HandleError(s3Bucket, err)
 		}
 
-		uid, exists := userSecret.Data["identifier"]
+		uid, exists := userSecret.Data[secretDataKeyIdentifier]
 		if !exists {
 			r.logger.Errorw("User identifier not found in secret", "name", req.Name, "namespace", req.Namespace)
 			return r.HandleError(s3Bucket, fmt.Errorf("user identifier not found in secret"))
@@ -475,7 +488,7 @@ func (r *S3BucketReconciler) waitForUserSecret(ctx context.Context, namespace, n
 		}, secret)
 		if err == nil {
 			// Check if the secret has the required data
-			if _, exists := secret.Data["identifier"]; exists {
+			if _, exists := secret.Data[secretDataKeyIdentifier]; exists {
 				return secret, nil
 			}
 		}

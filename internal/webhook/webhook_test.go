@@ -33,7 +33,7 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 	Describe("validateServerRefCrossNamespace", func() {
 		Context("when ENABLE_CROSS_NAMESPACE_VALIDATION is not set (default)", func() {
 			BeforeEach(func() {
-				os.Unsetenv("ENABLE_CROSS_NAMESPACE_VALIDATION")
+				Expect(os.Unsetenv("ENABLE_CROSS_NAMESPACE_VALIDATION")).To(Succeed())
 			})
 
 			It("should allow empty namespace in ServerRef", func() {
@@ -70,7 +70,7 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 
 		Context("when ENABLE_CROSS_NAMESPACE_VALIDATION is set to false", func() {
 			BeforeEach(func() {
-				os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "false")
+				Expect(os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "false")).To(Succeed())
 			})
 
 			It("should allow empty namespace in ServerRef", func() {
@@ -103,7 +103,7 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 
 		Context("when ENABLE_CROSS_NAMESPACE_VALIDATION is set to true", func() {
 			BeforeEach(func() {
-				os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "true")
+				Expect(os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "true")).To(Succeed())
 			})
 
 			It("should allow empty namespace in ServerRef", func() {
@@ -136,7 +136,7 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 
 		Context("when ENABLE_CROSS_NAMESPACE_VALIDATION is set to 1", func() {
 			BeforeEach(func() {
-				os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "1")
+				Expect(os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "1")).To(Succeed())
 			})
 
 			It("should allow cross-namespace ServerRef", func() {
@@ -151,7 +151,7 @@ var _ = Describe("Cross-Namespace Validation Webhook", func() {
 
 		Context("when ENABLE_CROSS_NAMESPACE_VALIDATION is set to invalid value", func() {
 			BeforeEach(func() {
-				os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "invalid")
+				Expect(os.Setenv("ENABLE_CROSS_NAMESPACE_VALIDATION", "invalid")).To(Succeed())
 			})
 
 			It("should default to disabled (reject cross-namespace)", func() {

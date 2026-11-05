@@ -81,7 +81,7 @@ func (c *S3ClientMocked) CheckServerValid() bool {
 		return false
 	}
 
-	credValue, _ := c.Options.Creds.Get()
+	credValue, _ := c.Options.Creds.GetWithContext(&credentials.CredContext{})
 	if !slices.ContainsFunc(c.S3ClientMockEnv.ValidCredentials, func(cred v1alpha1.S3ServerAuthSpec) bool {
 		return cred.AccessKey == credValue.AccessKeyID && cred.SecretKey == credValue.SecretAccessKey
 	}) {

@@ -62,7 +62,3 @@ type S3PolicyList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []S3Policy `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&S3Policy{}, &S3PolicyList{})
-}
