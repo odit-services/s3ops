@@ -1,3 +1,4 @@
 hooks:
   after-changelog:
     - make build-yaml IMG="ghcr.io/odit-services/s3ops:${SHIKAI_TAG}"
+tag-prefix: ""
