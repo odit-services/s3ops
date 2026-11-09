@@ -86,17 +86,6 @@ const (
 					"Resource": [
 						"arn:aws:s3:::*"
 					]
-				},
-				{
-					"Sid": "Allowall",
-					"Effect": "Allow",
-					"Principal": {
-						"AWS": [
-							"*"
-						]
-					},
-					"Action": ["s3:*"],
-					"Resource": ["arn:aws:s3:::*"]
 				}
 			]
 		}
