@@ -5,6 +5,479 @@ Versions are based on [Semantic Versioning](http://semver.org/), and the changel
 
 ## Version History
 
+* [0.18.0](#0.18.0)
+* [0.17.0](#0.17.0)
+
+## Changes
+
+<a name="0.18.0"></a>
+### [0.18.0](https://github.com/odit-services/s3ops/compare/0.17.0...0.18.0)
+
+> 2026-11-09
+
+
+
+* **ionos:** Switch policy to user-only
+
+
+
+* **deps:** update github-actions
+* **deps:** update ghcr.io/odit-services/s3ops docker tag to v0.17.0
+
+
+
+* Remove tag prefix via shikai
+
+
+<a name="0.17.0"></a>
+### 0.17.0
+
+> 2026-11-05
+
+
+
+* update Go version in Dockerfile to 1.26
+* add missing internal/webhook directory to Dockerfile
+* **Dockerfile:** use mirror for golang base image
+* **api:** update ProviderMeta json tag to be optional
+* **api:** Allow empty as enum value
+* **api:** Moved object annotation
+* **api:** Make tls optional with default
+* **api:** Make region optional
+* **changelog:** Fixed empty lines
+* **ci:** drop gha build cache from release workflow
+* **ci:** drop gha build cache, native cross-compile is faster
+* **ci:** cache trivy db on runner disk, skip gha cache
+* **controller:** Typo in policy
+* **controller:** update IAM policy to use object format for Principal
+* **controller:** update IAM policy to use array format for Resource
+* **controller:** update IAM policy to allow all S3 actions for bucket location
+* **controller:** update IAM policy actions to use array format for consistency
+* **controller:** Don't reset retries
+* **controller:** Add Event filters
+* **controller:** update user identifier condition for S3AdminClient type check
+* **controller:** add errcheck fixes and nolint for duplicate code
+* **controller:** update user credentials in S3User status during reconciliation
+* **deployment:** remove additionalPrinterColumns and update image tag to v0.13.0
+* **deployment:** update kube-rbac-proxy image reference to use registry.k8s.io
+* **deployment:** Remove probles
+* **docker:** Copy over services directory
+* **docker:** cross-compile natively without QEMU emulation
+* **ionos:** use timed native health check
+* **lint:** resolve golangci-lint findings and modernize config
+* **make:** Typo in multiarch target
+* **makefile:** pin shikai to v1.0.1
+* **manager:** Increase memeory limit
+* **mocks:** pass on spy
+* **rbac:** RBAC permissions for secrets
+* **rustfs:** persist service account credentials before creation
+* **rustfs:** use native health endpoint
+* **rustfsadminclient:** enhance error handling in checkStatus and MakeUser methods
+* **s3bucket_controller:** Truncate based on available length
+* **s3bucket_controller:** Don't override specialized status fields
+* **s3bucket_controller:** Don't override default error
+* **s3bucket_controller:** Fix truncate logic
+* **s3bucket_controller:** Adjust nanoid alphabet to conform with minio standards
+* **s3bucket_controller:** Follow namingconventions
+* **s3bucket_controller:** Always return errors if thrown
+* **s3client:** remove logging from Ionos client generation for cleaner output
+* **s3client:** enable object lock configuration when creating a bucket
+* **s3client:** improve HTTP response status code checks for user operations
+* **s3client:** improve error message for S3 key creation in MakeUser function
+* **s3client:** improve error handling in NewIonosClient and BucketExists methods
+* **s3client:** update Ionos client generation to use endpoint type
+* **s3policy_controller:** Typo
+* **s3server:** remove error handling for Minio health check
+* **s3server_controller:** Added Reason and lastupdate to all status updates
+* **s3server_controller:** Start healthcheck before cheking online status
+* **s3user:** Cleanup secret at user deletion
+* **s3user_controller:** Decode data from secret
+* **s3user_controller:** Generate password with correct settings)
+* **s3user_controller:** Confirm with naming standards
+* **samples:** Switch to 100% localhost
+* **samples:** Switch to default minio region
+* **services:** add errcheck fixes and extract server type constants
+* **webhook:** add nolint dupl and errcheck fixes
+* **workflows:** scope renovate run to current repository
+* **workflows:** use valid renovate schedule expression
+* **workflows:** run renovate on self-hosted runners
+* **workflows:** trigger release image build on tag push
+* **workflows:** use client-id for github app token
+* **workflows:** disable setup-go cache on self-hosted runners
+* **workflows:** disable setup-go cache in create-release
+
+
+
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* update changelog
+* **Dockerfile:** update Go version to 1.25 in builder image
+* **Makefile:** update tool versions for Kustomize, Controller Tools, Envtest, and GolangCI Lint
+* **Makefile:** update ENVTEST_K8S_VERSION to 1.32.0
+* **api:** correct DeepCopyInto implementation for S3Server and handle ProviderOptions
+* **api:** new manifests
+* **api:** remove unused DeepCopyObject method from S3Server
+* **api:** New autogenerated functions
+* **build:** auto-detect podman vs docker, fix multiarch push for podman
+* **build:** switch default container tool to podman
+* **changelog:** Generated Changelog
+* **crd:** update controller-gen version to v0.20.1 in CRDs
+* **crd:** add subresources to S3Server CRD for status management
+* **crd:** regenerate CRD manifests with rustfs type
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** enable webhook manifests and add validation env var
+* **deploy:** update deployment manifests
+* **deploy:** enable S3Server webhook manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deploy:** update deployment manifests
+* **deps:** bump Go to 1.27.3 and update dependencies
+* **deps:** upgrade golangci-lint to v2.11.4
+* **deps:** bump tool versions
+* **deps:** Added dependency
+* **deps:** update go.mod with new dependency versions
+* **deps:** update go.sum with updated checksums
+* **go.mod:** update Go version and dependencies
+* **makefile:** update SHIKAI_VERSION to v1.3.1
+* **release:** prepare v0.13.1
+* **release:** add shikai hook config
+* **release:** prepare v0.14.0
+* **release:** prepare 0.17.0
+* **release:** prepare v0.15.0
+* **release:** prepare v0.15.1
+* **release:** prepare v0.16.1
+* **release:** prepare v0.13.0
+* **release:** prepare v0.16.2
+* **samples:** add rustfs S3Server sample CR
+* **workflows:** Disable most things in release cretor
+* **workflows:** use ubuntu-latest runners
+* **workflows:** rename release workflow to Release Image
+
+
+
+* versioned tags from releases only, no latest from main
+* trigger build with package permissions fixed
+* re-run with package access
+* re-run workflow
+
+
+
+* Added some badges to the readme
+* Added specific version deploy to readme
+* Added missing information to readme
+* **README:** Added description and other facts
+* **readme:** add IONOS and RustFS to supported backends table
+
+
+
+* add delays to ensure user creation and group addition completion
+* log user creation details and include identifier in secret
+* add Ionos policy for S3 bucket access control
+* **S3bucket_controller:** Implement user creation
+* **api:** Added action consts
+* **api:** Add name generation to bucket CR
+* **api:** Added bucket spec info needed for creation
+* **api:** Added createuserfromtemplate for automagic user+policy generation
+* **api:** Added CurrentRetries to CrStatus
+* **api:** Add yaml to status
+* **api:** add webhook marker for S3Server
+* **api:** add ProviderMeta field to S3UserStatus for provider-specific metadata
+* **api:** Mark policy list as optional
+* **api:** add webhook markers for S3Bucket/S3User/S3Policy
+* **api:** Added baseline support for ionos
+* **api:** Added s3bucket server reference
+* **api:** Added policy refs to user
+* **api:** add rustfs to S3ServerSpec type enum
+* **api:** Added softdelete flag for s3bucket
+* **api:** Set printcolumns
+* **api:** New S3User Object
+* **api:** Added new Name field to s3policy
+* **api:** Added new cr bucket
+* **api:** Basic S3Server Type
+* **api:** Update required references for s3user
+* **api:** Added basics for s3policy
+* **changelog:** Updated template to include version index
+* **client:** implement ListUsers method in IonosAdminClient for user retrieval
+* **controller:** register S3Server webhook and add auth validation tests
+* **controller:** add error logging for Minio client health check
+* **controller:** Update lastaction according to the current state
+* **controller:** register webhooks and add cross-namespace validation flag
+* **controller:** Added requeue on error
+* **deployment:** New build bundles
+* **deployment:** Added full deployment build
+* **docs:** Updated changelog template
+* **make:** Push for new releases
+* **make:** Added advanced changelog generation script
+* **make:** Added release targtet
+* **make:** Changelog generation
+* **make:** Added multiarch target
+* **make:** Added yaml bundle build target
+* **make:** Patch version for yaml build
+* **mocks:** enhance user existence checks with logging and detailed error messages
+* **release:** draft first, attach trivy report and sbom, then publish
+* **renovate:** automerge patch updates, add registry aliases
+* **rustfs:** add function to shorten service account names and corresponding tests
+* **s3bucket:** add Ionos policy creation and user secret handling in reconcile
+* **s3bucket_controller:** Baseline setup
+* **s3bucket_controller:** Fill in created field of the status
+* **s3bucket_controller:** Set correct finalizer
+* **s3bucket_controller:** Implement bucket creation
+* **s3bucket_controller:** Set new status fields
+* **s3bucket_controller:** Implemented deletion
+* **s3bucket_controller:** Info log for reconcile
+* **s3bucket_controller:** Implemented secret deletion
+* **s3bucket_controller:** Implement name generation
+* **s3bucket_controller:** Also create secret if it does not already exist
+* **s3bucket_controller:** Added policy template for rw
+* **s3bucket_controller:** Implement secret creation
+* **s3bucket_controller:** Added basic controller for s3 buckets
+* **s3client:** add providerOptions to IonosAdminClient and update instantiation feat(s3server): add optional providerOptions field to S3ServerSpec
+* **s3client:** Added minio implementation of s3client
+* **s3client:** Add interface functions for bucket operations
+* **s3client:** Support external secrets for servers
+* **s3client:** Add RemoveBucket to interface
+* **s3client:** wire rustfs provider into client factory
+* **s3client:** add RustFS admin client implementation
+* **s3client:** Implemented policy apply
+* **s3client:** implement policy management methods in IonosAdminClient
+* **s3client:** Baseline implementation for admin client
+* **s3client:** Throw error when creating client from server config if server is offline
+* **s3client:** Added needed functions to interface
+* **s3client:** add functionality to add user to group after creation
+* **s3policy_controller:** implement outside actions for policy reconcile
+* **s3policy_controller:** Implement s3policy creation
+* **s3policy_controller:** Baseline Implementation
+* **s3policy_controller:** Implement policy name generation
+* **s3policy_controller:** Implemented policy deletion
+* **s3server_controller:** Implement s3server status check on ressource creation
+* **s3server_controller:** Requeue
+* **s3server_controller:** Support for existing secrets
+* **s3server_controller:** Update online field
+* **s3user:** add ProviderMeta to S3User status after reconciliation
+* **s3user:** include user identifier in S3 user credentials structure
+* **s3user_controller:** Basics of secret handling
+* **s3user_controller:** Implement user creation
+* **s3user_controller:** Implemented deletion
+* **s3user_controller:** Added additional logs/status conditions
+* **s3user_controller:** Implemented secret generation
+* **s3user_controller:** Implement policy assign
+* **s3user_controller:** Base setup
+* **samples:** Added user and policy samples
+* **samples:** Added s3buckedt sample
+* **services:** Added usage of ionos s3 clients
+* **webhook:** add S3Server auth validation webhook
+* **webhook:** add cross-namespace ServerRef validation
+* **webhooks:** add support for enabling webhooks via flags and environment variable
+* **workflows:** add trivy image scan gating registry push
+* **workflows:** add renovate with github app authentication
+* **workflows:** weekly automated patch releases on dependency updates
+* **workflows:** align pipelines with ghops (lint, releases, tag pattern)
+* **workflows:** run make test in CI
+
+
+
+* **api:** Switch to disable flag instead of enable flag for s3bucket name generation
+
+
+
+* Removed on-client image build/release in favor of actions build
+* Add seperate client identifier for wider access key creation support
+* **api:** Remove ability to provide s3user custom secret
+* **api:** Switched from running to reconciling
+* **api:** Use sharted cr status instead of implementing status for all CRs
+* **api:** Switch to seperate status functions
+* **api:** Support api tokens for servers as optional
+* **api:** Remove Port
+* **api:** Switched from Transition to Reconcile Time
+* **api:** Remove conditions from S3User Status
+* **api:** Remove conditions from s3policy status
+* **api:** Remove conditions from s3bucket status
+* **api:** Add shared CrStatus
+* **api:** Rename status.status to status.state
+* **api:** Add existingSecret ref option to s3server
+* **api:** Removed conditions from s3server
+* **ci:** Switch to selfhosted runners
+* **client:** add depth parameter to ListUsers request for improved user listing due to breaking change with ionos
+* **client:** streamline client initialization using GenerateIonosClient
+* **client:** simplify IsOnline method in IonosClient
+* **controller:** Remove unused Condition return values
+* **controller:** Replace default minio client with mockable interface
+* **controller:** Extract s3client related stuff into it's own module
+* **controller:** Remove Condition return from helper functions
+* **controller:** Move ServerRef to shared object
+* **controllers:** Rename to reflect job instead of provider
+* **controllers:** Extract s3 server get into shared function
+* **deploymeng:** Set default version and image
+* **makefile:** replace release flow with shikai
+* **rbac:** streamline ClusterRole by consolidating resource verbs and finalizers
+* **s3bucket_controller:** Extract Status updates to HandleError function
+* **s3bucket_controller:** Switch to the new state style ref #1
+* **s3client:** improve MakeBucket method by extracting bucket configuration
+* **s3client:** Move to services folder
+* **s3client:** Handle different client implementations
+* **s3client:** Removed condition from helper functions
+* **s3policy_controller:** Switch to the new CrStatus from just conditions
+* **s3server_controller:** Switch to CrStatus instead of conditions
+* **s3server_controller:** Extract minio client generation to shared function
+* **s3user_controller:** Migrate secret handling to helper functions
+* **s3user_controller:** Switch to policy name generation
+* **s3user_controller:** Removed logic related to user-provided secrets
+* **s3user_controller:** Switch to nanoid user only
+* **s3user_controller:** Switch to writing CrStatus instead of conditions
+* **tests:** Use mocked s3client instead of guesswork with play.min.io
+
+
+
+* **s3bucket_controller:** Removed unused comments
+* **s3server_controller:** Typo
+* **webhook:** add missing newline at end of s3server_webhook.go
+* **webhook:** Lint+format
+
+
+
+* **controllers:** Reconcile test server objects for non-server reconcilers
+* **controllers:** Fix a bunch of nill pointer exceptions
+* **controllers:** Added spy to s3client mocks
+* **mocks:** Mock S3Client
+* **s3bucket:** Test for finalizer being set
+* **s3bucket_controller:** Switch from state to condition
+* **s3bucket_controller:** reset spy and mark bucket as existing
+* **s3bucket_controller:** Test for call of secondary functions on user create
+* **s3bucket_controller:** Test for correct policy
+* **s3bucket_controller:** Test for user+policy creation
+* **s3bucket_controller:** Test for s3server with secretauth to handle s3client helper function test
+* **s3bucket_controller:** Test for bucket connection details secret creation
+* **s3bucket_controller:** Test secret deletion
+* **s3bucket_controller:** Added tests for happy path
+* **s3bucket_controller:** Fix typo in then
+* **s3bucket_controller:** Test for the new CRStatus fields
+* **s3bucket_controller:** Check name generation
+* **s3bucket_controller:** Test for correct type
+* **s3bucket_controller:** Test deletion of sample users
+* **s3bucket_controller:** Envoke deletion for delete tests
+* **s3bucket_controller:** Added deletion tests
+* **s3bucket_controller:** Check new created status field
+* **s3bucket_controller:** Typo in object ref
+* **s3bucket_controller:** Added tests for s3 server problems
+* **s3client:** Implement mocks
+* **s3client:** Implemente empty mock bodies
+* **s3client:** Added admin mocks
+* **s3policy_controller:** Test for new policy status name field
+* **s3policy_controller:** Test policy deletion
+* **s3policy_controller:** Test policy updates
+* **s3policy_controller:** Basic test setup
+* **s3policy_controller:** Updated tests to match new naming rules
+* **s3server_controller:** Test for CrStatus fields instead of condition magic
+* **s3server_controller:** Added tests for servers with existing secrets
+* **s3server_controller:** Implemented basic tests
+* **s3server_controller:** Check condition for all tests
+* **s3server_controller:** Test updates
+* **s3server_controller:** Test deletion
+* **s3server_controller:** Test for new online status
+* **s3user_controller:** Also enforce checkpolicy
+* **s3user_controller:** Test for policy apply
+* **s3user_controller:** Test happy path for create and update
+* **s3user_controller:** Switch to loading policy name from env
+* **s3user_controller:** Use correct secret data access syntax
+* **s3user_controller:** Switch to crstatus
+* **s3user_controller:** Create test policy for user
+* **s3user_controller:** Fix in bracket order
+* **s3user_controller:** Added deletion happy path test
+* **s3user_controller:** Test basic controller functions
+* **s3user_controller:** Added tests for invalid servers
+* **webhook:** add unit tests for cross-namespace validation
+
+
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+Versions are based on [Semantic Versioning](http://semver.org/), and the changelog is generated with [Chglog](https://github.com/git-chglog/git-chglog).
+
+## Version History
+
 * [v0.15.1](#v0.15.1)
 * [v0.15.0](#v0.15.0)
 * [v0.14.0](#v0.14.0)
