@@ -870,7 +870,7 @@ spec:
         env:
         - name: ENABLE_CROSS_NAMESPACE_VALIDATION
           value: "false"
-        image: ghcr.io/odit-services/s3ops:0.19.0
+        image: ghcr.io/odit-services/s3ops:0.19.1
         name: manager
         resources:
           limits:
