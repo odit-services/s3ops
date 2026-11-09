@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/odit-services/s3ops
-  newTag: 0.18.0
+  newTag: 0.19.0
