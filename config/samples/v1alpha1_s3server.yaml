@@ -28,3 +28,22 @@ spec:
     secretKey: rustfsadmin
   # providerOptions:
   #   consoleEndpoint: http://localhost:9001  # optional: auto-derived from endpoint port if omitted
+---
+apiVersion: s3.odit.services/v1alpha1
+kind: S3Server
+metadata:
+  labels:
+    app.kubernetes.io/name: s3ops
+    app.kubernetes.io/managed-by: kustomize
+  name: s3server-ionos-sample
+spec:
+  type: ionos
+  endpoint: s3-eu-central-4.ionoscloud.com
+  tls: true
+  auth:
+    apiToken: changeme
+    # accessKey/secretKey are used for the S3 data-plane client;
+    # apiToken is used for user/contract lookups in the Cloud API.
+  providerOptions:
+    s3GroupId: changeme # IONOS user group ID with "Use Object Storage" privilege
+    contractNumber: "12345678" # required for contract-owned buckets: used as arn:aws:iam:::user/<contractNumber>:<userUUID>
