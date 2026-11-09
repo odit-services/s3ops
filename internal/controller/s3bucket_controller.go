@@ -443,9 +443,29 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.logger.Errorw("User identifier not found in secret", "name", req.Name, "namespace", req.Namespace)
 			return r.HandleError(s3Bucket, fmt.Errorf("user identifier not found in secret"))
 		}
-		r.logger.Infow("User identifier found", "name", req.Name, "namespace", req.Namespace, "identifier", string(uid))
+		userID := strings.TrimSpace(string(uid))
+		r.logger.Infow("User identifier found", "name", req.Name, "namespace", req.Namespace, "identifier", userID)
 
-		err = s3AdminClient.MakePolicy(ctx, bucketName, fmt.Sprintf(PolicyReadWriteIonos, uid, bucketName, bucketName, uid))
+		// IONOS contract-owned buckets expect the Contract User ID as principal:
+		// arn:aws:iam:::user/<contractNumber>:<userUUID> (see IONOS bucket policy
+		// examples). A plain user UUID matches no principal, so prefix it.
+		// Prefer providerOptions.contractNumber, fall back to a lookup via the
+		// Cloud API when the admin client can resolve it.
+		contractNumber := s3client.IonosContractNumberFromProviderOptions(s3Server.Spec.ProviderOptions)
+		if contractNumber == "" {
+			if ionosAdminClient, ok := s3AdminClient.(*s3client.IonosAdminClient); ok {
+				resolved, resolveErr := ionosAdminClient.ResolveContractNumber(ctx)
+				if resolveErr != nil {
+					r.logger.Errorw("Failed to resolve Ionos contract number", "name", req.Name, "namespace", req.Namespace, "error", resolveErr)
+					return r.HandleError(s3Bucket, fmt.Errorf("ionos contract number not configured (providerOptions.contractNumber) and auto-detection failed: %w", resolveErr))
+				}
+				contractNumber = resolved
+			}
+		}
+		if contractNumber == "" {
+			return r.HandleError(s3Bucket, fmt.Errorf("ionos contract number not configured: set providerOptions.contractNumber on the S3Server"))
+		}
+		err = s3AdminClient.MakePolicy(ctx, bucketName, BuildIonosBucketPolicy(contractNumber, userID, bucketName))
 		if err != nil {
 			r.logger.Errorw("Failed to create Ionos policy for bucket", "name", req.Name, "namespace", req.Namespace, "error", err)
 			return r.HandleError(s3Bucket, err)

@@ -2,9 +2,12 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	s3client "github.com/odit-services/s3ops/internal/services/s3client"
 )
 
 func getSecret(ctx context.Context, r client.Client, namespace string, name string) (*corev1.Secret, error) {
@@ -91,3 +94,12 @@ const (
 		}
 	`
 )
+
+// BuildIonosBucketPolicy renders the bucket policy for IONOS contract-owned
+// buckets. The principal is always the Contract User ID
+// (arn:aws:iam:::user/<contractNumber>:<userUUID>); a plain user UUID matches
+// no principal and previously went unnoticed behind an AllowAll statement.
+func BuildIonosBucketPolicy(contractNumber, userID, bucketName string) string {
+	principal := s3client.IonosContractUserID(contractNumber, userID)
+	return fmt.Sprintf(PolicyReadWriteIonos, principal, bucketName, bucketName, principal)
+}

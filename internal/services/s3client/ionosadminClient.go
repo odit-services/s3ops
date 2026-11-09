@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	ionoscloud "github.com/ionos-cloud/sdk-go-object-storage"
@@ -15,11 +17,12 @@ import (
 )
 
 type IonosAdminClient struct {
-	Client     *ionoscloud.APIClient
-	HttpClient *http.Client
-	ApiUrl     string
-	ApiToken   string
-	S3GroupId  string
+	Client         *ionoscloud.APIClient
+	HttpClient     *http.Client
+	ApiUrl         string
+	ApiToken       string
+	S3GroupId      string
+	ContractNumber string
 }
 
 type IonosUserListResponse struct {
@@ -57,11 +60,12 @@ func NewIonosAdminClient(endpoint string, accessKey string, secretKey string, ap
 	client, err := GenerateIonosClient(endpoint, accessKey, secretKey)
 	httpClient := &http.Client{}
 	return &IonosAdminClient{
-		Client:     client,
-		HttpClient: httpClient,
-		ApiUrl:     "https://api.ionos.com/cloudapi/v6",
-		ApiToken:   apiToken,
-		S3GroupId:  providerOptions["s3GroupId"],
+		Client:         client,
+		HttpClient:     httpClient,
+		ApiUrl:         "https://api.ionos.com/cloudapi/v6",
+		ApiToken:       apiToken,
+		S3GroupId:      providerOptions["s3GroupId"],
+		ContractNumber: IonosContractNumberFromProviderOptions(providerOptions),
 	}, err
 }
 
@@ -290,4 +294,75 @@ func (c *IonosAdminClient) RemovePolicy(ctx context.Context, policyName string) 
 
 func (c *IonosAdminClient) ApplyPolicyToUser(ctx context.Context, policyName string, accessKey string) error {
 	return nil
+}
+
+// IonosContractNumberFromProviderOptions reads the IONOS contract number from
+// the S3Server providerOptions. "contractNumber" is canonical; "contractId"
+// and "contract" are accepted as aliases.
+func IonosContractNumberFromProviderOptions(providerOptions map[string]string) string {
+	for _, key := range []string{"contractNumber", "contractId", "contract", "contract_number"} {
+		if v := strings.TrimSpace(providerOptions[key]); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// IonosContractUserID builds the Contract User ID used as Principal for
+// contract-owned buckets: "<contractNumber>:<userUUID>".
+// A userID that already contains a contract prefix is returned unchanged.
+func IonosContractUserID(contractNumber, userID string) string {
+	userID = strings.TrimSpace(userID)
+	contractNumber = strings.TrimSpace(contractNumber)
+	if userID == "" || contractNumber == "" {
+		return userID
+	}
+	if strings.Contains(userID, ":") {
+		return userID
+	}
+	return contractNumber + ":" + userID
+}
+
+type ionosContractsResponse struct {
+	Items []struct {
+		Properties struct {
+			ContractNumber int64 `json:"contractNumber"`
+		} `json:"properties"`
+	} `json:"items"`
+}
+
+// ResolveContractNumber returns the configured contract number, or looks it up
+// via GET /contracts when it is not configured. With multiple contracts an
+// explicit providerOptions entry is required.
+func (c *IonosAdminClient) ResolveContractNumber(ctx context.Context) (string, error) {
+	if strings.TrimSpace(c.ContractNumber) != "" {
+		return strings.TrimSpace(c.ContractNumber), nil
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", c.ApiUrl+"/contracts?depth=1", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.ApiToken)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("failed to fetch contracts: %s", resp.Status)
+	}
+
+	var contracts ionosContractsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&contracts); err != nil {
+		return "", err
+	}
+	if len(contracts.Items) == 0 {
+		return "", errors.New("no contracts found for token; set providerOptions.contractNumber on the S3Server")
+	}
+	if len(contracts.Items) > 1 {
+		return "", errors.New("multiple contracts found; set providerOptions.contractNumber on the S3Server to select one")
+	}
+	return strconv.FormatInt(contracts.Items[0].Properties.ContractNumber, 10), nil
 }
