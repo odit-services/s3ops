@@ -7,6 +7,7 @@ require (
 	github.com/ionos-cloud/sdk-go-object-storage v1.1.0
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/minio/madmin-go v1.7.5
+	github.com/minio/madmin-go/v4 v4.10.7
 	github.com/minio/minio-go/v7 v7.4.1
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
