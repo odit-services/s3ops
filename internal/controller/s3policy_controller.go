@@ -81,6 +81,10 @@ func (r *S3PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Policy := &s3oditservicesv1alpha1.S3Policy{}
 	err := r.Get(ctx, req.NamespacedName, s3Policy)
 	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			r.logger.Infow("S3Policy resource not found, nothing to do", "name", req.Name, "namespace", req.Namespace)
+			return ctrl.Result{}, nil
+		}
 		r.logger.Errorw("Failed to get S3Policy resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3Policy, err)
 	}

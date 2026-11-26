@@ -633,6 +633,67 @@ var _ = Describe("S3Bucket Controller", Ordered, func() {
 				}, &s3Bucket)).To(HaveOccurred())
 			})
 		})
+		When("A s3bucket is deleted after its secret, policy and user are already gone", func() {
+			var err error
+			var s3Bucket s3oditservicesv1alpha1.S3Bucket
+
+			BeforeAll(func() {
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				nameSpacedName := types.NamespacedName{
+					Name:      "test-s3-bucket-deleteme-orphaned",
+					Namespace: "default",
+				}
+				s3Bucket = s3oditservicesv1alpha1.S3Bucket{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      nameSpacedName.Name,
+						Namespace: nameSpacedName.Namespace,
+					},
+					Spec: s3oditservicesv1alpha1.S3BucketSpec{
+						ServerRef: s3oditservicesv1alpha1.ServerReference{
+							Name:      s3Server.Name,
+							Namespace: s3Server.Namespace,
+						},
+						Region:                 "eu-west-1",
+						ObjectLocking:          false,
+						CreateUserFromTemplate: "readwrite",
+					},
+				}
+				Expect(k8sClient.Create(ctx, &s3Bucket)).To(Succeed())
+
+				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(k8sClient.Get(ctx, nameSpacedName, &s3Bucket)).To(Succeed())
+
+				// Simulate namespace teardown order: the -bkt secret is garbage
+				// collected before the bucket finalizer runs, and the companion
+				// policy/user objects are already gone as well.
+				Expect(k8sClient.Delete(ctx, &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      fmt.Sprintf("%s-bkt", s3Bucket.Name),
+						Namespace: s3Bucket.Namespace,
+					},
+				})).To(Succeed())
+
+				s3MockSpy = mocks.S3ClientMockSpy{}
+				s3MockEnv.ExistingBuckets = append(s3MockEnv.ExistingBuckets, s3Bucket.Status.Name)
+				Expect(k8sClient.Delete(ctx, &s3Bucket)).To(Succeed())
+				_, err = testReconciler.Reconcile(ctx, ctrl.Request{
+					NamespacedName: nameSpacedName,
+				})
+			})
+
+			It("Should not return an error", func() {
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("Should have deleted the s3bucket instead of blocking on the finalizer", func() {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{
+					Name:      s3Bucket.Name,
+					Namespace: s3Bucket.Namespace,
+				}, &s3Bucket)).ToNot(Succeed())
+			})
+		})
 		When("A new valid s3bucket is deleted with user generation enabled from template", func() {
 			var err error
 			var s3Bucket s3oditservicesv1alpha1.S3Bucket

@@ -81,6 +81,10 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	s3User := &s3oditservicesv1alpha1.S3User{}
 	err := r.Get(ctx, req.NamespacedName, s3User)
 	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			r.logger.Infow("S3User resource not found, nothing to do", "name", req.Name, "namespace", req.Namespace)
+			return ctrl.Result{}, nil
+		}
 		r.logger.Errorw("Failed to get S3User resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3User, err)
 	}
@@ -126,26 +130,31 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if s3User.Status.SecretRef != "" {
 		secret, err = getSecret(ctx, r.Client, s3User.Namespace, s3User.Status.SecretRef)
 		if err != nil {
-			r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3User, err)
-		}
-
-		userCreds = struct {
-			AccessKey  string
-			SecretKey  string
-			Identifier string
-		}{
-			AccessKey:  string(secret.Data[secretDataKeyAccessKey]),
-			SecretKey:  string(secret.Data[secretDataKeySecretKey]),
-			Identifier: string(secret.Data[secretDataKeyIdentifier]),
-		}
-
-		if s3AdminClient.GetType() != s3client.ServerTypeIonos && s3User.Status.UserIdentifier == "" {
-			s3User.Status.UserIdentifier = userCreds.AccessKey
-			err = r.Status().Update(ctx, s3User)
-			if err != nil {
-				r.logger.Errorw("Failed to update S3User resource status with user identifier", "name", req.Name, "namespace", req.Namespace, "error", err)
+			if client.IgnoreNotFound(err) == nil && s3User.DeletionTimestamp != nil {
+				r.logger.Infow("Secret already gone, continuing deletion", "name", req.Name, "namespace", req.Namespace)
+				secret = nil
+			} else {
+				r.logger.Errorw("Failed to get secret for S3User", "name", req.Name, "namespace", req.Namespace, "error", err)
 				return r.HandleError(s3User, err)
+			}
+		} else {
+			userCreds = struct {
+				AccessKey  string
+				SecretKey  string
+				Identifier string
+			}{
+				AccessKey:  string(secret.Data[secretDataKeyAccessKey]),
+				SecretKey:  string(secret.Data[secretDataKeySecretKey]),
+				Identifier: string(secret.Data[secretDataKeyIdentifier]),
+			}
+
+			if s3AdminClient.GetType() != s3client.ServerTypeIonos && s3User.Status.UserIdentifier == "" {
+				s3User.Status.UserIdentifier = userCreds.AccessKey
+				err = r.Status().Update(ctx, s3User)
+				if err != nil {
+					r.logger.Errorw("Failed to update S3User resource status with user identifier", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3User, err)
+				}
 			}
 		}
 	}
@@ -211,10 +220,15 @@ func (r *S3UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return r.HandleError(s3User, err)
 			}
 		}
-		err = r.Delete(ctx, secret)
-		if err != nil {
-			r.logger.Errorw("Failed to delete secret", "name", req.Name, "namespace", req.Namespace, "error", err)
-			return r.HandleError(s3User, err)
+		if secret != nil {
+			err = r.Delete(ctx, secret)
+			if err != nil {
+				if client.IgnoreNotFound(err) != nil {
+					r.logger.Errorw("Failed to delete secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3User, err)
+				}
+				r.logger.Infow("Secret already gone", "name", req.Name, "namespace", req.Namespace)
+			}
 		}
 
 		controllerutil.RemoveFinalizer(s3User, "s3.odit.services/user")

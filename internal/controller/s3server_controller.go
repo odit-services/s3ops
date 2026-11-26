@@ -78,6 +78,10 @@ func (r *S3ServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Server := &s3oditservicesv1alpha1.S3Server{}
 	err := r.Get(ctx, req.NamespacedName, s3Server)
 	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			r.logger.Infow("S3Server resource not found, nothing to do", "name", req.Name, "namespace", req.Namespace)
+			return ctrl.Result{}, nil
+		}
 		r.logger.Errorw("Failed to get S3Server resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return r.HandleError(s3Server, err)
 	}

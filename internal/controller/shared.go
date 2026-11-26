@@ -17,7 +17,7 @@ func getSecret(ctx context.Context, r client.Client, namespace string, name stri
 		Name:      name,
 	}, secret)
 	if err != nil {
-		return secret, err
+		return nil, err
 	}
 
 	return secret, nil

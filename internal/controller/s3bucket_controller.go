@@ -94,6 +94,10 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	s3Bucket := &s3oditservicesv1alpha1.S3Bucket{}
 	err := r.Get(ctx, req.NamespacedName, s3Bucket)
 	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			r.logger.Infow("S3Bucket resource not found, nothing to do", "name", req.Name, "namespace", req.Namespace)
+			return ctrl.Result{}, nil
+		}
 		r.logger.Errorw("Failed to get S3Bucket resource", "name", req.Name, "namespace", req.Namespace, "error", err)
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
@@ -195,14 +199,21 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		secret, err := getSecret(ctx, r.Client, req.Namespace, fmt.Sprintf("%s-bkt", s3Bucket.Name))
 		if err != nil {
-			r.logger.Warnw("Failed to get secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+			if client.IgnoreNotFound(err) != nil {
+				r.logger.Errorw("Failed to get secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+				return r.HandleError(s3Bucket, err)
+			}
+			r.logger.Infow("Secret already gone, continuing deletion", "name", req.Name, "namespace", req.Namespace)
 		}
 		if secret != nil {
 			r.logger.Debugw("Removing secret", "name", req.Name, "namespace", req.Namespace)
 			err = r.Delete(ctx, secret)
 			if err != nil {
-				r.logger.Errorw("Failed to remove secret", "name", req.Name, "namespace", req.Namespace, "error", err)
-				return r.HandleError(s3Bucket, err)
+				if client.IgnoreNotFound(err) != nil {
+					r.logger.Errorw("Failed to remove secret", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3Bucket, err)
+				}
+				r.logger.Infow("Secret already gone", "name", req.Name, "namespace", req.Namespace)
 			}
 		}
 
@@ -215,8 +226,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				},
 			})
 			if err != nil {
-				r.logger.Errorw("Failed to remove policy", "name", req.Name, "namespace", req.Namespace, "error", err)
-				return r.HandleError(s3Bucket, err)
+				if client.IgnoreNotFound(err) != nil {
+					r.logger.Errorw("Failed to remove policy", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3Bucket, err)
+				}
+				r.logger.Infow("Policy already gone", "name", req.Name, "namespace", req.Namespace)
 			}
 
 			r.logger.Debugw("Removing user", "name", req.Name, "namespace", req.Namespace)
@@ -227,8 +241,11 @@ func (r *S3BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				},
 			})
 			if err != nil {
-				r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
-				return r.HandleError(s3Bucket, err)
+				if client.IgnoreNotFound(err) != nil {
+					r.logger.Errorw("Failed to remove user", "name", req.Name, "namespace", req.Namespace, "error", err)
+					return r.HandleError(s3Bucket, err)
+				}
+				r.logger.Infow("User already gone", "name", req.Name, "namespace", req.Namespace)
 			}
 		}
 
