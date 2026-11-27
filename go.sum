@@ -96,6 +96,8 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/klauspost/compress v1.20.3 h1:zWNoFqq/lSuYQRim3dUXlXeA0IqwuZGicdG5ZTfY5j4=
 github.com/klauspost/compress v1.20.3/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
+github.com/klauspost/compress v1.20.4 h1:dD0v/bvxtjCBqQu6sx1TNWkalEY5lNTIe+HY9w8TeNI=
+github.com/klauspost/compress v1.20.4/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/klauspost/cpuid/v2 v2.0.1/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.4.2 h1:xRw7IZEsAgVCp6trS/DgWbTAqpixhmywgVgBjYGg1bQ=
 github.com/klauspost/cpuid/v2 v2.4.2/go.mod h1:19jmZ9mjzoF//ddRSUsv0zfBTJWh3QJh9FNxZTMrGxU=
@@ -119,6 +121,7 @@ github.com/minio/crc64nvme v1.1.1 h1:8dwx/Pz49suywbO+auHCBpCtlW1OfpcLN7wYgVR6wAI
 github.com/minio/crc64nvme v1.1.1/go.mod h1:eVfm2fAzLlxMdUGc0EEBGSMmPwmXD5XiNRpnu9J3bvg=
 github.com/minio/madmin-go v1.7.5 h1:IF8j2HR0jWc7msiOcy0KJ8EyY7Q3z+j+lsmSDksQm+I=
 github.com/minio/madmin-go v1.7.5/go.mod h1:3SO8SROxHN++tF6QxdTii2SSUaYSrr8lnE9EJWjvz0k=
+github.com/minio/madmin-go/v4 v4.11.1/go.mod h1:JDslSPq7HDpbtWPOyRU2bk7WsSDTXIlQqZ15ISlONfs=
 github.com/minio/md5-simd v1.1.2 h1:Gdi1DZK69+ZVMoNHRXJyNcxrMA4dSxoYHZSQbirFg34=
 github.com/minio/md5-simd v1.1.2/go.mod h1:MzdKDxYpY2BT9XQFocsiZf/NKVtR7nkE4RoEpN+20RM=
 github.com/minio/minio-go/v7 v7.4.1 h1:PtU/zIOfQRWZ+QydXAZysc+xZYHdG+BBR4Z6TUvy73w=
